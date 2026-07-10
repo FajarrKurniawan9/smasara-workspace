@@ -104,8 +104,33 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal menerbitkan token akses"})
 	}
 
+	// 5. Tanamkan Token ke dalam HTTP-Only Cookie (Brankas Baja)
+	c.Cookie(&fiber.Cookie{
+		Name:     "jwt_smasara",
+		Value:    t,
+		Expires:  time.Now().Add(72 * time.Hour), // Sesuai dengan masa berlaku token
+		HTTPOnly: true,                           // Anti-XSS (Mustahil dibaca JavaScript)
+		SameSite: "Lax",                          // Anti-CSRF (Gunakan "Lax" untuk dev lokal)
+		// Secure: true,                         // TODO: Aktifkan (uncomment) saat Production dengan HTTPS
+	})
+
+	// 6. Dikembalikan (Response sukses TANPA mengirim token di JSON body)
 	return c.JSON(fiber.Map{
 		"message": "Login berhasil",
-		"token":   t,
+	})
+}
+
+// Logout: Wajib dibuat karena Frontend tidak bisa menghapus HTTP-Only Cookie
+func (h *AuthHandler) Logout(c *fiber.Ctx) error {
+	c.Cookie(&fiber.Cookie{
+		Name:     "jwt_smasara",
+		Value:    "",                             // Kosongkan nilai
+		Expires:  time.Now().Add(-1 * time.Hour), // Paksa kedaluwarsa ke masa lalu
+		HTTPOnly: true,
+		SameSite: "Lax",
+	})
+
+	return c.JSON(fiber.Map{
+		"message": "Logout berhasil",
 	})
 }
