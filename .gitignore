@@ -1,0 +1,26 @@
+# .gitignore utama untuk Smasara Workspace
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment variables (SANGAT PENTING: Jangan sampai bocor!)
+.env
+smasara-backend/.env
+smasara-frontend/.env
+
+# Go (Backend)
+smasara-backend/vendor/
+smasara-backend/smasara-api # Hasil build binary
+
+# Node/Frontend (Asumsi menggunakan React/Vue/Next)
+smasara-frontend/node_modules/
+smasara-frontend/dist/
+smasara-frontend/build/
+smasara-frontend/.next/
+smasara-frontend/out/
+
+# Database Data (Jika Anda menyimpan volume database di lokal)
+# Pastikan Anda mengabaikan folder tempat Postgres menyimpan datanya
+db-data/
+postgres-data/
