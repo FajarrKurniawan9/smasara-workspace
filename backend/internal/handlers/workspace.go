@@ -18,12 +18,16 @@ func (h *WorkspaceHandler) CreateWorkspace(c *fiber.Ctx) error {
 	// 1. Ambil ID user dari JWT (Titipan Satpam)
 	userIDStr, ok := c.Locals("user_id").(string)
 	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identitas JWT tidak terbaca"})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Identitas pengguna tidak ditemukan. Sesi mungkin telah kedaluwarsa.",
+		})
 	}
 
 	var userUUID pgtype.UUID
 	if err := userUUID.Scan(userIDStr); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format ID User tidak valid"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Format ID pengguna tidak valid.",
+		})
 	}
 
 	// 2. Tangkap & Validasi Sinyal (Data dari client)
@@ -84,12 +88,16 @@ func (h *WorkspaceHandler) GetUserWorkspaces(c *fiber.Ctx) error {
 	// 1. Ambil ID user dari JWT (Titipan Satpam)
 	userIDStr, ok := c.Locals("user_id").(string)
 	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identitas JWT tidak terbaca"})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Identitas pengguna tidak ditemukan. Sesi mungkin telah kedaluwarsa.",
+		})
 	}
 
 	var userUUID pgtype.UUID
 	if err := userUUID.Scan(userIDStr); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format ID User tidak valid"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Format ID pengguna tidak valid.",
+		})
 	}
 
 	// 2. Proses: Tarik data dari Database via sqlc

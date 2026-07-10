@@ -18,13 +18,17 @@ func (h *ProfileHandler) CreateProfile(c *fiber.Ctx) error {
 	// 1. Ambil user_id dari JWT
 	userIDStr, ok := c.Locals("user_id").(string)
 	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identitas JWT tidak terbaca"})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Identitas pengguna tidak ditemukan. Sesi mungkin telah kedaluwarsa.",
+		})
 	}
 
 	// 2. Ubah string ID menjadi tipe UUID murni
 	var userUUID pgtype.UUID
 	if err := userUUID.Scan(userIDStr); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format ID User tidak valid"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Format ID pengguna tidak valid.",
+		})
 	}
 
 	// 3. Tangkap Sinyal (Data dari client)

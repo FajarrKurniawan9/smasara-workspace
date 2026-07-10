@@ -38,11 +38,15 @@ func (h *DocumentHandler) CreateDocument(c *fiber.Ctx) error {
 	// Ambil Author ID dari JWT
 	userIDStr, ok := c.Locals("user_id").(string)
 	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identitas JWT tidak terbaca"})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Identitas pengguna tidak ditemukan. Sesi mungkin telah kedaluwarsa.",
+		})
 	}
-	var authorUUID pgtype.UUID
-	if err := authorUUID.Scan(userIDStr); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format ID User tidak valid"})
+	var userUUID pgtype.UUID
+	if err := userUUID.Scan(userIDStr); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Format ID pengguna tidak valid.",
+		})
 	}
 
 	// Struct untuk menerima payload dari user
@@ -94,7 +98,7 @@ func (h *DocumentHandler) CreateDocument(c *fiber.Ctx) error {
 	doc, err := h.DB.CreateDocument(c.Context(), database.CreateDocumentParams{
 		WorkspaceID: workspaceUUID,
 		FolderID:    folderUUID,
-		AuthorID:    authorUUID, 
+		AuthorID:    userUUID, 
 		Title:       cleanTitle, // <-- Gunakan cleanTitle yang sudah divalidasi
 		Content:     pgtype.Text{String: req.Content, Valid: true}, 
 		IsPublic:    req.IsPublic,
