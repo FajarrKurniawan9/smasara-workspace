@@ -63,9 +63,9 @@ func (q *Queries) CheckWorkspaceMember(ctx context.Context, arg CheckWorkspaceMe
 
 const createDocument = `-- name: CreateDocument :one
 
-INSERT INTO documents (workspace_id, folder_id, author_id, title, content, is_public)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, created_at, updated_at, deleted_at
+INSERT INTO documents (workspace_id, folder_id, author_id, title, content, is_public, slug)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, created_at, updated_at, deleted_at
 `
 
 type CreateDocumentParams struct {
@@ -75,6 +75,7 @@ type CreateDocumentParams struct {
 	Title       string
 	Content     pgtype.Text
 	IsPublic    bool
+	Slug        string
 }
 
 // ==========================================
@@ -88,6 +89,7 @@ func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) 
 		arg.Title,
 		arg.Content,
 		arg.IsPublic,
+		arg.Slug,
 	)
 	var i Document
 	err := row.Scan(
@@ -98,6 +100,7 @@ func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) 
 		&i.Title,
 		&i.Content,
 		&i.IsPublic,
+		&i.Slug,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -233,7 +236,7 @@ func (q *Queries) DeleteFolder(ctx context.Context, arg DeleteFolderParams) (int
 }
 
 const getDocument = `-- name: GetDocument :one
-SELECT id, workspace_id, folder_id, author_id, title, content, is_public, created_at, updated_at, deleted_at FROM documents 
+SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, created_at, updated_at, deleted_at FROM documents 
 WHERE id = $1 AND workspace_id = $2 LIMIT 1
 `
 
@@ -253,6 +256,7 @@ func (q *Queries) GetDocument(ctx context.Context, arg GetDocumentParams) (Docum
 		&i.Title,
 		&i.Content,
 		&i.IsPublic,
+		&i.Slug,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -278,9 +282,69 @@ func (q *Queries) GetProfileByID(ctx context.Context, id pgtype.UUID) (Profile, 
 	return i, err
 }
 
+const getPublicDocumentBySlug = `-- name: GetPublicDocumentBySlug :one
+
+SELECT 
+    d.id, d.title, d.content, d.slug, d.is_public,
+    d.created_at, d.updated_at,
+    p.username AS author_username, 
+    p.full_name AS author_full_name,
+    p.avatar_url AS author_avatar_url
+FROM documents d
+JOIN profiles p ON d.author_id = p.id
+JOIN workspaces w ON d.workspace_id = w.id
+WHERE w.slug = $1
+  AND d.slug = $2
+  AND d.is_public = true
+  AND d.deleted_at IS NULL
+LIMIT 1
+`
+
+type GetPublicDocumentBySlugParams struct {
+	Slug   string
+	Slug_2 string
+}
+
+type GetPublicDocumentBySlugRow struct {
+	ID              pgtype.UUID
+	Title           string
+	Content         pgtype.Text
+	Slug            string
+	IsPublic        bool
+	CreatedAt       pgtype.Timestamp
+	UpdatedAt       pgtype.Timestamp
+	AuthorUsername  string
+	AuthorFullName  string
+	AuthorAvatarUrl pgtype.Text
+}
+
+// ==========================================
+// GERBANG PUBLIK (Public Share Read-Only)
+// ==========================================
+// Endpoint publik: Tanpa JWT, keamanan 100% di level SQL.
+// JOIN ke workspaces untuk resolve workspace_slug dari URL.
+// JOIN ke profiles untuk ambil data author (anti N+1 query).
+func (q *Queries) GetPublicDocumentBySlug(ctx context.Context, arg GetPublicDocumentBySlugParams) (GetPublicDocumentBySlugRow, error) {
+	row := q.db.QueryRow(ctx, getPublicDocumentBySlug, arg.Slug, arg.Slug_2)
+	var i GetPublicDocumentBySlugRow
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Content,
+		&i.Slug,
+		&i.IsPublic,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.AuthorUsername,
+		&i.AuthorFullName,
+		&i.AuthorAvatarUrl,
+	)
+	return i, err
+}
+
 const getTrashedDocuments = `-- name: GetTrashedDocuments :many
 
-SELECT id, workspace_id, folder_id, author_id, title, content, is_public, created_at, updated_at, deleted_at FROM documents
+SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, created_at, updated_at, deleted_at FROM documents
 WHERE workspace_id = $1 AND deleted_at IS NOT NULL
 ORDER BY deleted_at DESC
 `
@@ -305,6 +369,7 @@ func (q *Queries) GetTrashedDocuments(ctx context.Context, workspaceID pgtype.UU
 			&i.Title,
 			&i.Content,
 			&i.IsPublic,
+			&i.Slug,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -376,7 +441,7 @@ func (q *Queries) GetUserWorkspaces(ctx context.Context, userID pgtype.UUID) ([]
 }
 
 const getWorkspaceDocuments = `-- name: GetWorkspaceDocuments :many
-SELECT id, workspace_id, folder_id, author_id, title, content, is_public, created_at, updated_at, deleted_at FROM documents
+SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, created_at, updated_at, deleted_at FROM documents
 WHERE workspace_id = $1 AND deleted_at IS NULL
 ORDER BY updated_at DESC
 `
@@ -398,6 +463,7 @@ func (q *Queries) GetWorkspaceDocuments(ctx context.Context, workspaceID pgtype.
 			&i.Title,
 			&i.Content,
 			&i.IsPublic,
+			&i.Slug,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -510,9 +576,10 @@ SET
     content = $4,
     folder_id = $5,
     is_public = $6,
+    slug = $7,
     updated_at = NOW()
 WHERE id = $1 AND workspace_id = $2
-RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, created_at, updated_at, deleted_at
+RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, created_at, updated_at, deleted_at
 `
 
 type UpdateDocumentParams struct {
@@ -522,6 +589,7 @@ type UpdateDocumentParams struct {
 	Content     pgtype.Text
 	FolderID    pgtype.UUID
 	IsPublic    bool
+	Slug        string
 }
 
 func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (Document, error) {
@@ -532,6 +600,7 @@ func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) 
 		arg.Content,
 		arg.FolderID,
 		arg.IsPublic,
+		arg.Slug,
 	)
 	var i Document
 	err := row.Scan(
@@ -542,6 +611,7 @@ func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) 
 		&i.Title,
 		&i.Content,
 		&i.IsPublic,
+		&i.Slug,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,

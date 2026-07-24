@@ -16,6 +16,7 @@ type Document struct {
 	Title       string
 	Content     pgtype.Text
 	IsPublic    bool
+	Slug        string
 	CreatedAt   pgtype.Timestamp
 	UpdatedAt   pgtype.Timestamp
 	DeletedAt   pgtype.Timestamp

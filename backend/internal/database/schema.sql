@@ -45,7 +45,9 @@ CREATE TABLE documents (
     title TEXT NOT NULL DEFAULT 'Untitled Document',
     content TEXT,
     is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    slug TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMP
+    deleted_at TIMESTAMP,
+    UNIQUE (workspace_id, slug)
 );

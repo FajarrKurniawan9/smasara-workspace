@@ -58,8 +58,8 @@ WHERE id = $1 AND workspace_id = $2 LIMIT 1;
 -- ==========================================
 
 -- name: CreateDocument :one
-INSERT INTO documents (workspace_id, folder_id, author_id, title, content, is_public)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO documents (workspace_id, folder_id, author_id, title, content, is_public, slug)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
 -- name: GetDocument :one
@@ -78,6 +78,7 @@ SET
     content = $4,
     folder_id = $5,
     is_public = $6,
+    slug = $7,
     updated_at = NOW()
 WHERE id = $1 AND workspace_id = $2
 RETURNING *;
@@ -110,3 +111,26 @@ WHERE id = $1 AND workspace_id = $2;
 -- name: DeleteFolder :execrows
 DELETE FROM folders
 WHERE id = $1 AND workspace_id = $2;
+
+-- ==========================================
+-- GERBANG PUBLIK (Public Share Read-Only)
+-- ==========================================
+
+-- name: GetPublicDocumentBySlug :one
+-- Endpoint publik: Tanpa JWT, keamanan 100% di level SQL.
+-- JOIN ke workspaces untuk resolve workspace_slug dari URL.
+-- JOIN ke profiles untuk ambil data author (anti N+1 query).
+SELECT 
+    d.id, d.title, d.content, d.slug, d.is_public,
+    d.created_at, d.updated_at,
+    p.username AS author_username, 
+    p.full_name AS author_full_name,
+    p.avatar_url AS author_avatar_url
+FROM documents d
+JOIN profiles p ON d.author_id = p.id
+JOIN workspaces w ON d.workspace_id = w.id
+WHERE w.slug = $1
+  AND d.slug = $2
+  AND d.is_public = true
+  AND d.deleted_at IS NULL
+LIMIT 1;
