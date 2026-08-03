@@ -4,8 +4,8 @@ services:
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password123
-      POSTGRES_DB: smasara
+      POSTGRES_PASSWORD: 531269
+      POSTGRES_DB: smasara_db
     ports:
       - "5432:5432"
     volumes:
@@ -22,13 +22,13 @@ services:
       - db
     environment:
       # Menggabungkan semua kredensial menjadi satu URL koneksi untuk Go
-      - DATABASE_URL=postgres://postgres:password123@db:5432/smasara?sslmode=disable
+      - DATABASE_URL=postgres://postgres:531269@db:5432/smasara_db?sslmode=disable
       # Mempertahankan variabel individu untuk berjaga-jaga jika kode Anda membutuhkannya
       - DB_HOST=db
       - DB_PORT=5432
       - DB_USER=postgres
-      - DB_PASSWORD=password123
-      - DB_NAME=smasara
+      - DB_PASSWORD=531269
+      - DB_NAME=smasara_db
 
   # 3. Svelte Frontend
   frontend:
