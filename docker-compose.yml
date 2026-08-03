@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. Database (PostgreSQL)
   db:
@@ -23,6 +21,9 @@ services:
     depends_on:
       - db
     environment:
+      # Menggabungkan semua kredensial menjadi satu URL koneksi untuk Go
+      - DATABASE_URL=postgres://postgres:password123@db:5432/smasara?sslmode=disable
+      # Mempertahankan variabel individu untuk berjaga-jaga jika kode Anda membutuhkannya
       - DB_HOST=db
       - DB_PORT=5432
       - DB_USER=postgres

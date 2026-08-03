@@ -104,8 +104,8 @@ workspaceGroup := app.Group(
 	workspaceGroup.Patch("/documents/:document_id/restore", docHandler.RestoreDocument) // <-- BARU: Restore Dokumen
 	workspaceGroup.Delete("/documents/:document_id/hard", docHandler.HardDeleteDocument) // <-- BARU: Hard Delete Dokumen
 
-	// 4. Nyalakan Server di Port 3000
-	fmt.Println("Server Smasara menyala di port 3000...")
-	if err := app.Listen(":3000"); err != nil {
+	// 4. Nyalakan Server di Port 8080
+	fmt.Println("Server Smasara menyala di port 8080...")
+	if err := app.Listen(":8080"); err != nil {
 	log.Fatalf("Gagal menjalankan server: %v", err)}
 }
