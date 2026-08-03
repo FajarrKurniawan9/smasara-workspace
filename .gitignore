@@ -6,19 +6,19 @@ Thumbs.db
 
 # Environment variables (SANGAT PENTING: Jangan sampai bocor!)
 .env
-smasara-backend/.env
-smasara-frontend/.env
+backend/.env
+frontend/.env
 
 # Go (Backend)
-smasara-backend/vendor/
-smasara-backend/smasara-api # Hasil build binary
+backend/vendor/
+backend/smasara-api # Hasil build binary
 
 # Node/Frontend (Asumsi menggunakan React/Vue/Next)
-smasara-frontend/node_modules/
-smasara-frontend/dist/
-smasara-frontend/build/
-smasara-frontend/.next/
-smasara-frontend/out/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.next/
+frontend/out/
 
 # Database Data (Jika Anda menyimpan volume database di lokal)
 # Pastikan Anda mengabaikan folder tempat Postgres menyimpan datanya
