@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"errors"
 	"log"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
 	// Sesuaikan dengan import path package database sqlc Anda
@@ -94,6 +96,13 @@ func (h *DocumentHandler) CreateDocument(c *fiber.Ctx) error {
 		}
 	}
 
+	// Generate slug unik dalam workspace (dari judul + disambiguator otomatis)
+	slug, err := h.uniqueSlug(c.Context(), workspaceUUID, cleanTitle)
+	if err != nil {
+		log.Printf("Error generating slug: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal membuat slug dokumen"})
+	}
+
 	// Eksekusi ke database via sqlc
 	doc, err := h.DB.CreateDocument(c.Context(), database.CreateDocumentParams{
 		WorkspaceID: workspaceUUID,
@@ -102,6 +111,7 @@ func (h *DocumentHandler) CreateDocument(c *fiber.Ctx) error {
 		Title:       cleanTitle, // <-- Gunakan cleanTitle yang sudah divalidasi
 		Content:     pgtype.Text{String: req.Content, Valid: true}, 
 		IsPublic:    req.IsPublic,
+		Slug:        slug,
 	})
 	if err != nil {
 		log.Printf("Error creating document: %v", err)
@@ -134,6 +144,7 @@ func (h *DocumentHandler) UpdateDocument(c *fiber.Ctx) error {
 		Content  string `json:"content"`
 		FolderID string `json:"folder_id"`
 		IsPublic bool   `json:"is_public"`
+		Version  int32  `json:"version"` // versi yang dimiliki client (optimistic locking)
 	}
 
 	var req UpdateDocRequest
@@ -166,7 +177,7 @@ func (h *DocumentHandler) UpdateDocument(c *fiber.Ctx) error {
 		}
 	}
 
-	// 2. Eksekusi DB dengan mengirim WorkspaceID juga
+	// 2. Eksekusi DB dengan mengirim WorkspaceID & Version (optimistic locking)
 	doc, err := h.DB.UpdateDocument(c.Context(), database.UpdateDocumentParams{
 		ID:          docUUID,
 		WorkspaceID: workspaceUUID, // <-- TAMBENG PERTAHANAN KITA
@@ -174,14 +185,29 @@ func (h *DocumentHandler) UpdateDocument(c *fiber.Ctx) error {
 		Content:     pgtype.Text{String: req.Content, Valid: true}, 
 		FolderID:    folderUUID, 
 		IsPublic:    req.IsPublic, 
+		Version:     req.Version,
 	})
 	
 	if err != nil {
-		// Jika dokumen tidak ditemukan atau bukan milik workspace ini,
-		// sqlc (:one) otomatis mengirim error "no rows in result set"
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Dokumen tidak ditemukan atau Anda tidak memiliki akses",
-		})
+		if errors.Is(err, pgx.ErrNoRows) {
+			// Tidak ada baris yang cocok: bisa 404 (dokumen hilang) atau 409 (versi bentrok).
+			// Bedakan dengan mengecek keberadaan dokumen.
+			_, checkErr := h.DB.GetDocument(c.Context(), database.GetDocumentParams{
+				ID:          docUUID,
+				WorkspaceID: workspaceUUID,
+			})
+			if checkErr != nil {
+				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+					"error": "Dokumen tidak ditemukan atau Anda tidak memiliki akses",
+				})
+			}
+			// Dokumen ada, tapi versi sudah berubah -> konflik edit.
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+				"error": "Dokumen sudah diubah oleh pengguna lain. Muat ulang versi terbaru lalu coba lagi.",
+			})
+		}
+		log.Printf("Error updating document: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal memperbarui dokumen"})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

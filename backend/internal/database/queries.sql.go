@@ -65,7 +65,7 @@ const createDocument = `-- name: CreateDocument :one
 
 INSERT INTO documents (workspace_id, folder_id, author_id, title, content, is_public, slug)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, created_at, updated_at, deleted_at
+RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, created_at, updated_at, deleted_at
 `
 
 type CreateDocumentParams struct {
@@ -101,6 +101,7 @@ func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) 
 		&i.Content,
 		&i.IsPublic,
 		&i.Slug,
+		&i.Version,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -236,7 +237,7 @@ func (q *Queries) DeleteFolder(ctx context.Context, arg DeleteFolderParams) (int
 }
 
 const getDocument = `-- name: GetDocument :one
-SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, created_at, updated_at, deleted_at FROM documents 
+SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, created_at, updated_at, deleted_at FROM documents 
 WHERE id = $1 AND workspace_id = $2 LIMIT 1
 `
 
@@ -257,11 +258,31 @@ func (q *Queries) GetDocument(ctx context.Context, arg GetDocumentParams) (Docum
 		&i.Content,
 		&i.IsPublic,
 		&i.Slug,
+		&i.Version,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
 	)
 	return i, err
+}
+
+const getDocumentBySlug = `-- name: GetDocumentBySlug :one
+SELECT id FROM documents
+WHERE workspace_id = $1 AND slug = $2 AND deleted_at IS NULL
+LIMIT 1
+`
+
+type GetDocumentBySlugParams struct {
+	WorkspaceID pgtype.UUID
+	Slug        string
+}
+
+// Cek apakah slug sudah dipakai di workspace (untuk disambiguator slug).
+func (q *Queries) GetDocumentBySlug(ctx context.Context, arg GetDocumentBySlugParams) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, getDocumentBySlug, arg.WorkspaceID, arg.Slug)
+	var id pgtype.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getProfileByID = `-- name: GetProfileByID :one
@@ -344,7 +365,7 @@ func (q *Queries) GetPublicDocumentBySlug(ctx context.Context, arg GetPublicDocu
 
 const getTrashedDocuments = `-- name: GetTrashedDocuments :many
 
-SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, created_at, updated_at, deleted_at FROM documents
+SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, created_at, updated_at, deleted_at FROM documents
 WHERE workspace_id = $1 AND deleted_at IS NOT NULL
 ORDER BY deleted_at DESC
 `
@@ -370,6 +391,7 @@ func (q *Queries) GetTrashedDocuments(ctx context.Context, workspaceID pgtype.UU
 			&i.Content,
 			&i.IsPublic,
 			&i.Slug,
+			&i.Version,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -441,7 +463,7 @@ func (q *Queries) GetUserWorkspaces(ctx context.Context, userID pgtype.UUID) ([]
 }
 
 const getWorkspaceDocuments = `-- name: GetWorkspaceDocuments :many
-SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, created_at, updated_at, deleted_at FROM documents
+SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, created_at, updated_at, deleted_at FROM documents
 WHERE workspace_id = $1 AND deleted_at IS NULL
 ORDER BY updated_at DESC
 `
@@ -464,6 +486,7 @@ func (q *Queries) GetWorkspaceDocuments(ctx context.Context, workspaceID pgtype.
 			&i.Content,
 			&i.IsPublic,
 			&i.Slug,
+			&i.Version,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -576,10 +599,10 @@ SET
     content = $4,
     folder_id = $5,
     is_public = $6,
-    slug = $7,
-    updated_at = NOW()
-WHERE id = $1 AND workspace_id = $2
-RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, created_at, updated_at, deleted_at
+    updated_at = NOW(),
+    version = version + 1
+WHERE id = $1 AND workspace_id = $2 AND version = $7
+RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, created_at, updated_at, deleted_at
 `
 
 type UpdateDocumentParams struct {
@@ -589,9 +612,11 @@ type UpdateDocumentParams struct {
 	Content     pgtype.Text
 	FolderID    pgtype.UUID
 	IsPublic    bool
-	Slug        string
+	Version     int32
 }
 
+// Optimistic locking (T-101): hanya update jika version cocok, lalu naikkan version.
+// Slug TIDAK di-update di sini (slug immutable setelah dibuat).
 func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (Document, error) {
 	row := q.db.QueryRow(ctx, updateDocument,
 		arg.ID,
@@ -600,7 +625,7 @@ func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) 
 		arg.Content,
 		arg.FolderID,
 		arg.IsPublic,
-		arg.Slug,
+		arg.Version,
 	)
 	var i Document
 	err := row.Scan(
@@ -612,6 +637,7 @@ func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) 
 		&i.Content,
 		&i.IsPublic,
 		&i.Slug,
+		&i.Version,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,

@@ -17,6 +17,7 @@ type Document struct {
 	Content     pgtype.Text
 	IsPublic    bool
 	Slug        string
+	Version     int32
 	CreatedAt   pgtype.Timestamp
 	UpdatedAt   pgtype.Timestamp
 	DeletedAt   pgtype.Timestamp

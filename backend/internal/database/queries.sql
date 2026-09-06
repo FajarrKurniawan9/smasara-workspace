@@ -62,6 +62,12 @@ INSERT INTO documents (workspace_id, folder_id, author_id, title, content, is_pu
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
+-- name: GetDocumentBySlug :one
+-- Cek apakah slug sudah dipakai di workspace (untuk disambiguator slug).
+SELECT id FROM documents
+WHERE workspace_id = $1 AND slug = $2 AND deleted_at IS NULL
+LIMIT 1;
+
 -- name: GetDocument :one
 SELECT * FROM documents 
 WHERE id = $1 AND workspace_id = $2 LIMIT 1;
@@ -72,15 +78,17 @@ WHERE workspace_id = $1 AND deleted_at IS NULL
 ORDER BY updated_at DESC;
 
 -- name: UpdateDocument :one
+-- Optimistic locking (T-101): hanya update jika version cocok, lalu naikkan version.
+-- Slug TIDAK di-update di sini (slug immutable setelah dibuat).
 UPDATE documents
 SET 
     title = $3,
     content = $4,
     folder_id = $5,
     is_public = $6,
-    slug = $7,
-    updated_at = NOW()
-WHERE id = $1 AND workspace_id = $2
+    updated_at = NOW(),
+    version = version + 1
+WHERE id = $1 AND workspace_id = $2 AND version = $7
 RETURNING *;
 
 -- name: SoftDeleteDocument :execrows

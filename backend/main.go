@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -23,6 +24,11 @@ func main() {
 	// defer = "Tunda eksekusi baris ini sampai server mati/dihentikan"
 	// Ini best practice biar koneksi ngga bocor (memory leak)
 	defer dbPool.Close()
+
+	// Jalankan migrasi DB sebelum server mulai (non-destruktif, idempoten)
+	if err := database.RunMigrations(context.Background(), dbPool); err != nil {
+		log.Fatalf("Gagal menjalankan migrasi database: %v", err)
+	}
 
 	queries := database.New(dbPool) // dbPool adalah variabel *pgxpool.Pool lu
 	authHandler := &handlers.AuthHandler{DB: queries}
