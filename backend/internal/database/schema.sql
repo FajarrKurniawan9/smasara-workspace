@@ -64,3 +64,21 @@ CREATE TRIGGER documents_search_vector_trigger
     BEFORE INSERT OR UPDATE ON documents
     FOR EACH ROW
     EXECUTE PROCEDURE tsvector_update_trigger(search_vector, 'pg_catalog.simple', title, content);
+
+-- T-103: saat dokumen dihapus (soft delete), otomatis set is_public = false.
+-- Restore TIDAK mengembalikan status publik (dokumen tetap private).
+CREATE OR REPLACE FUNCTION documents_unpublish_on_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.deleted_at IS NOT NULL AND OLD.deleted_at IS NULL THEN
+        NEW.is_public := false;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS documents_unpublish_trigger ON documents;
+CREATE TRIGGER documents_unpublish_trigger
+    BEFORE UPDATE OF deleted_at ON documents
+    FOR EACH ROW
+    EXECUTE FUNCTION documents_unpublish_on_delete();
