@@ -40,15 +40,27 @@ CREATE TABLE folders (
 CREATE TABLE documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-    folder_id UUID REFERENCES folders(id) ON DELETE SET NULL, 
+    folder_id UUID REFERENCES folders(id) ON DELETE SET NULL,
     author_id UUID NOT NULL REFERENCES profiles(id),
     title TEXT NOT NULL DEFAULT 'Untitled Document',
     content TEXT,
     is_public BOOLEAN NOT NULL DEFAULT FALSE,
     slug TEXT NOT NULL,
     version INT NOT NULL DEFAULT 1,
+    search_vector tsvector,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMP,
     UNIQUE (workspace_id, slug)
 );
+
+-- T-102: search_vector di-update otomatis via trigger bawaan Postgres (tsvector_update_trigger).
+-- Config 'simple' agar tidak memotong kata (aman untuk campuran Indonesia-Inggris).
+CREATE INDEX IF NOT EXISTS documents_search_vector_idx
+    ON documents USING GIN (search_vector);
+
+DROP TRIGGER IF EXISTS documents_search_vector_trigger ON documents;
+CREATE TRIGGER documents_search_vector_trigger
+    BEFORE INSERT OR UPDATE ON documents
+    FOR EACH ROW
+    EXECUTE PROCEDURE tsvector_update_trigger(search_vector, 'pg_catalog.simple', title, content);
