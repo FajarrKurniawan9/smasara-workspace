@@ -24,3 +24,6 @@ frontend/out/
 # Pastikan Anda mengabaikan folder tempat Postgres menyimpan datanya
 db-data/
 postgres-data/
+
+# Dokumentasi lokal (PRD, arsitektur, decision log) — jangan di-commit, hanya backend & frontend
+docs/
