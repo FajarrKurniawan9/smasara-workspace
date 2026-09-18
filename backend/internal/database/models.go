@@ -9,18 +9,20 @@ import (
 )
 
 type Document struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
-	FolderID    pgtype.UUID
-	AuthorID    pgtype.UUID
-	Title       string
-	Content     pgtype.Text
-	IsPublic    bool
-	Slug        string
-	Version     int32
-	CreatedAt   pgtype.Timestamp
-	UpdatedAt   pgtype.Timestamp
-	DeletedAt   pgtype.Timestamp
+	ID           pgtype.UUID
+	WorkspaceID  pgtype.UUID
+	FolderID     pgtype.UUID
+	AuthorID     pgtype.UUID
+	Title        string
+	Content      pgtype.Text
+	IsPublic     bool
+	Slug         string
+	Version      int32
+	SearchVector interface{}
+	PublishedAt  pgtype.Timestamptz
+	CreatedAt    pgtype.Timestamp
+	UpdatedAt    pgtype.Timestamp
+	DeletedAt    pgtype.Timestamp
 }
 
 type Folder struct {

@@ -65,7 +65,7 @@ const createDocument = `-- name: CreateDocument :one
 
 INSERT INTO documents (workspace_id, folder_id, author_id, title, content, is_public, slug)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, created_at, updated_at, deleted_at
+RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at
 `
 
 type CreateDocumentParams struct {
@@ -102,6 +102,8 @@ func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) 
 		&i.IsPublic,
 		&i.Slug,
 		&i.Version,
+		&i.SearchVector,
+		&i.PublishedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -237,7 +239,7 @@ func (q *Queries) DeleteFolder(ctx context.Context, arg DeleteFolderParams) (int
 }
 
 const getDocument = `-- name: GetDocument :one
-SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, created_at, updated_at, deleted_at FROM documents 
+SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at FROM documents 
 WHERE id = $1 AND workspace_id = $2 LIMIT 1
 `
 
@@ -259,6 +261,8 @@ func (q *Queries) GetDocument(ctx context.Context, arg GetDocumentParams) (Docum
 		&i.IsPublic,
 		&i.Slug,
 		&i.Version,
+		&i.SearchVector,
+		&i.PublishedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
@@ -365,7 +369,7 @@ func (q *Queries) GetPublicDocumentBySlug(ctx context.Context, arg GetPublicDocu
 
 const getTrashedDocuments = `-- name: GetTrashedDocuments :many
 
-SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, created_at, updated_at, deleted_at FROM documents
+SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at FROM documents
 WHERE workspace_id = $1 AND deleted_at IS NOT NULL
 ORDER BY deleted_at DESC
 `
@@ -392,6 +396,8 @@ func (q *Queries) GetTrashedDocuments(ctx context.Context, workspaceID pgtype.UU
 			&i.IsPublic,
 			&i.Slug,
 			&i.Version,
+			&i.SearchVector,
+			&i.PublishedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -463,7 +469,7 @@ func (q *Queries) GetUserWorkspaces(ctx context.Context, userID pgtype.UUID) ([]
 }
 
 const getWorkspaceDocuments = `-- name: GetWorkspaceDocuments :many
-SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, created_at, updated_at, deleted_at FROM documents
+SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at FROM documents
 WHERE workspace_id = $1 AND deleted_at IS NULL
 ORDER BY updated_at DESC
 `
@@ -487,6 +493,8 @@ func (q *Queries) GetWorkspaceDocuments(ctx context.Context, workspaceID pgtype.
 			&i.IsPublic,
 			&i.Slug,
 			&i.Version,
+			&i.SearchVector,
+			&i.PublishedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
@@ -602,7 +610,7 @@ SET
     updated_at = NOW(),
     version = version + 1
 WHERE id = $1 AND workspace_id = $2 AND version = $7
-RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, created_at, updated_at, deleted_at
+RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at
 `
 
 type UpdateDocumentParams struct {
@@ -638,6 +646,8 @@ func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) 
 		&i.IsPublic,
 		&i.Slug,
 		&i.Version,
+		&i.SearchVector,
+		&i.PublishedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,

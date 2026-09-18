@@ -48,6 +48,7 @@ CREATE TABLE documents (
     slug TEXT NOT NULL,
     version INT NOT NULL DEFAULT 1,
     search_vector tsvector,
+    published_at TIMESTAMPTZ,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMP,
@@ -67,11 +68,13 @@ CREATE TRIGGER documents_search_vector_trigger
 
 -- T-103: saat dokumen dihapus (soft delete), otomatis set is_public = false.
 -- Restore TIDAK mengembalikan status publik (dokumen tetap private).
+-- T-104: soft delete juga mengosongkan published_at (invariant: is_public=false => published_at NULL).
 CREATE OR REPLACE FUNCTION documents_unpublish_on_delete()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.deleted_at IS NOT NULL AND OLD.deleted_at IS NULL THEN
         NEW.is_public := false;
+        NEW.published_at := NULL;
     END IF;
     RETURN NEW;
 END;
@@ -82,3 +85,30 @@ CREATE TRIGGER documents_unpublish_trigger
     BEFORE UPDATE OF deleted_at ON documents
     FOR EACH ROW
     EXECUTE FUNCTION documents_unpublish_on_delete();
+
+-- T-104: published_at di-stempel saat transisi publish, dikosongkan saat unpublish.
+-- Pengecekan transisi OLD<->NEW wajib karena UpdateDocument selalu menulis is_public
+-- di clause SET (trigger 'UPDATE OF is_public' menyala walau nilai tidak berubah).
+CREATE OR REPLACE FUNCTION documents_stamp_published_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        IF NEW.is_public THEN
+            NEW.published_at := NOW();
+        END IF;
+    ELSE
+        IF OLD.is_public = false AND NEW.is_public = true THEN
+            NEW.published_at := NOW();
+        ELSIF OLD.is_public = true AND NEW.is_public = false THEN
+            NEW.published_at := NULL;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS documents_published_at_trigger ON documents;
+CREATE TRIGGER documents_published_at_trigger
+    BEFORE INSERT OR UPDATE OF is_public ON documents
+    FOR EACH ROW
+    EXECUTE FUNCTION documents_stamp_published_at();
