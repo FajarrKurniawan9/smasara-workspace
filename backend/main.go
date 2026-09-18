@@ -84,33 +84,55 @@ func main() {
 		})
 	})
 
-workspaceGroup := app.Group(
+	workspaceGroup := app.Group(
 		"/api/workspaces/:workspace_id",
 		middleware.Protected(),
 		middleware.RequireWorkspaceAccess(queries), 
 	)
 
+	// -- Rute Anggota Workspace (T-106) --
+	workspaceGroup.Post("/members", middleware.RequireWriteAccess(), workspaceHandler.AddWorkspaceMember)
+
 	// -- Rute Folder --
-	workspaceGroup.Post("/folders", folderHandler.CreateFolder)
+	workspaceGroup.Post("/folders", middleware.RequireWriteAccess(), folderHandler.CreateFolder)
 	workspaceGroup.Get("/folders", folderHandler.GetWorkspaceFolders)
 	workspaceGroup.Get("/folders/:folder_id", folderHandler.GetFolder)              // <-- T-105: folder + dokumen indeks
-	workspaceGroup.Put("/folders/:folder_id/index", folderHandler.SetFolderIndexDocument) // <-- T-105: pasang/hapus index
-	workspaceGroup.Delete("/folders/:folder_id", folderHandler.DeleteFolder) // <-- BARU: Hapus Folder Cascading
+	workspaceGroup.Put("/folders/:folder_id/index", middleware.RequireWriteAccess(), folderHandler.SetFolderIndexDocument) // <-- T-105: pasang/hapus index
+	workspaceGroup.Delete("/folders/:folder_id", middleware.RequireWriteAccess(), folderHandler.DeleteFolder) // <-- BARU: Hapus Folder Cascading
 
 	// -- Rute Recycle Bin (Trash) --
 	// PENTING: Rute "trash" harus ditaruh di ATAS rute "/:document_id" agar Fiber tidak mengira "trash" adalah sebuah ID
 	workspaceGroup.Get("/documents/trash", docHandler.GetTrashedDocuments) // <-- BARU: Lihat isi Recycle Bin
 	
+	// -- Rute Search (T-108) --
+	workspaceGroup.Get("/search", docHandler.SearchDocuments)
+
 	// -- Rute Dokumen Inti --
-	workspaceGroup.Post("/documents", docHandler.CreateDocument)
+	workspaceGroup.Post("/documents", middleware.RequireWriteAccess(), docHandler.CreateDocument)
 	workspaceGroup.Get("/documents", docHandler.GetWorkspaceDocuments)
 	workspaceGroup.Get("/documents/:document_id", docHandler.GetDocument)
-	workspaceGroup.Put("/documents/:document_id", docHandler.UpdateDocument)
-	workspaceGroup.Delete("/documents/:document_id", docHandler.SoftDeleteDocument)
+	workspaceGroup.Put("/documents/:document_id",
+		middleware.RequireWriteAccess(),
+		middleware.RequireDocumentNotLocked(queries),
+		docHandler.UpdateDocument)
+	workspaceGroup.Delete("/documents/:document_id",
+		middleware.RequireWriteAccess(),
+		middleware.RequireDocumentNotLocked(queries),
+		docHandler.SoftDeleteDocument)
+
+	// -- Rute Lock / Unlock (T-107) --
+	workspaceGroup.Post("/documents/:document_id/lock", docHandler.LockDocument)
+	workspaceGroup.Post("/documents/:document_id/unlock", docHandler.UnlockDocument)
+
+	// -- Rute Related Notes (T-109) --
+	workspaceGroup.Get("/documents/:document_id/related", docHandler.GetRelatedNotes)
 
 	// -- Rute Aksi Recycle Bin --
-	workspaceGroup.Patch("/documents/:document_id/restore", docHandler.RestoreDocument) // <-- BARU: Restore Dokumen
-	workspaceGroup.Delete("/documents/:document_id/hard", docHandler.HardDeleteDocument) // <-- BARU: Hard Delete Dokumen
+	workspaceGroup.Patch("/documents/:document_id/restore", middleware.RequireWriteAccess(), docHandler.RestoreDocument) // <-- BARU: Restore Dokumen
+	workspaceGroup.Delete("/documents/:document_id/hard",
+		middleware.RequireWriteAccess(),
+		middleware.RequireDocumentNotLocked(queries),
+		docHandler.HardDeleteDocument) // <-- BARU: Hard Delete Dokumen
 
 	// 4. Nyalakan Server di Port 8080
 	fmt.Println("Server Smasara menyala di port 8080...")

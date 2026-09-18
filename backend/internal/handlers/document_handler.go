@@ -393,3 +393,212 @@ func (h *DocumentHandler) HardDeleteDocument(c *fiber.Ctx) error {
 		"message": "Dokumen berhasil dihapus permanen",
 	})
 }
+
+// ==========================================
+// T-107: KUNCI READ-ONLY PER DOKUMEN
+// ==========================================
+
+// LockDocument mengunci dokumen agar hanya pemegang kunci / OWNER yang bisa mengedit.
+func (h *DocumentHandler) LockDocument(c *fiber.Ctx) error {
+	docIDStr := c.Params("document_id")
+	docUUID, err := parseUUID(docIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format document_id tidak valid"})
+	}
+
+	workspaceIDStr := c.Params("workspace_id")
+	workspaceUUID, err := parseUUID(workspaceIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format workspace_id tidak valid"})
+	}
+
+	userIDStr, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identitas pengguna tidak ditemukan"})
+	}
+	var userUUID pgtype.UUID
+	if err := userUUID.Scan(userIDStr); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format ID pengguna tidak valid"})
+	}
+
+	rows, err := h.DB.LockDocument(c.Context(), database.LockDocumentParams{
+		ID:          docUUID,
+		WorkspaceID: workspaceUUID,
+		LockedBy:    userUUID,
+	})
+	if err != nil {
+		log.Printf("Error locking document: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal mengunci dokumen"})
+	}
+
+	if rows == 0 {
+		// Cek apakah dokumen ada
+		_, checkErr := h.DB.GetDocument(c.Context(), database.GetDocumentParams{
+			ID:          docUUID,
+			WorkspaceID: workspaceUUID,
+		})
+		if checkErr != nil {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Dokumen tidak ditemukan atau Anda tidak memiliki akses"})
+		}
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "Dokumen sudah dikunci oleh pengguna lain"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Dokumen berhasil dikunci",
+	})
+}
+
+// UnlockDocument melepaskan kunci dokumen (oleh pemegang kunci).
+func (h *DocumentHandler) UnlockDocument(c *fiber.Ctx) error {
+	docIDStr := c.Params("document_id")
+	docUUID, err := parseUUID(docIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format document_id tidak valid"})
+	}
+
+	workspaceIDStr := c.Params("workspace_id")
+	workspaceUUID, err := parseUUID(workspaceIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format workspace_id tidak valid"})
+	}
+
+	userIDStr, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Identitas pengguna tidak ditemukan"})
+	}
+	var userUUID pgtype.UUID
+	if err := userUUID.Scan(userIDStr); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format ID pengguna tidak valid"})
+	}
+
+	// Coba lepas kunci sebagai pemegang kunci
+	rows, err := h.DB.UnlockDocument(c.Context(), database.UnlockDocumentParams{
+		ID:          docUUID,
+		WorkspaceID: workspaceUUID,
+		LockedBy:    userUUID,
+	})
+	if err != nil {
+		log.Printf("Error unlocking document: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal melepaskan kunci dokumen"})
+	}
+
+	if rows == 0 {
+		// Coba force unlock (hanya OWNER)
+		role, _ := c.Locals("workspace_role").(pgtype.Text)
+		if !role.Valid || role.String != "OWNER" {
+			// Cek apakah dokumen ada
+			_, checkErr := h.DB.GetDocument(c.Context(), database.GetDocumentParams{
+				ID:          docUUID,
+				WorkspaceID: workspaceUUID,
+			})
+			if checkErr != nil {
+				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Dokumen tidak ditemukan"})
+			}
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Hanya pemegang kunci atau Owner yang bisa melepaskan kunci"})
+		}
+
+		// Force unlock (OWNER)
+		_, err = h.DB.ForceUnlockDocument(c.Context(), database.ForceUnlockDocumentParams{
+			ID:          docUUID,
+			WorkspaceID: workspaceUUID,
+		})
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal melepaskan kunci dokumen"})
+		}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Kunci dokumen berhasil dilepaskan",
+	})
+}
+
+// ==========================================
+// T-108: PENCARIAN PINTAR (Search)
+// ==========================================
+
+// SearchDocuments mencari dokumen dalam workspace menggunakan full-text search + pg_trgm.
+func (h *DocumentHandler) SearchDocuments(c *fiber.Ctx) error {
+	workspaceIDStr := c.Params("workspace_id")
+	workspaceUUID, err := parseUUID(workspaceIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format workspace_id tidak valid"})
+	}
+
+	query := c.Query("q")
+	if strings.TrimSpace(query) == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Parameter q tidak boleh kosong"})
+	}
+
+	// Konversi query user ke tsquery format.
+	// Pisahkan kata, gabungkan dengan & (AND) untuk presisi.
+	words := strings.Fields(strings.TrimSpace(query))
+	tsquery := strings.Join(words, " & ")
+
+	docs, err := h.DB.SearchDocuments(c.Context(), database.SearchDocumentsParams{
+		WorkspaceID: workspaceUUID,
+		ToTsquery:   tsquery,
+	})
+	if err != nil {
+		log.Printf("Error searching documents: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal melakukan pencarian"})
+	}
+
+	if docs == nil {
+		docs = []database.SearchDocumentsRow{}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"query":     query,
+		"results":   docs,
+		"total":     len(docs),
+	})
+}
+
+// ==========================================
+// T-109: CATATAN TERKAIT (Related Notes)
+// ==========================================
+
+// GetRelatedNotes mengembalikan daftar catatan terkait dengan skor tertimbang.
+func (h *DocumentHandler) GetRelatedNotes(c *fiber.Ctx) error {
+	docIDStr := c.Params("document_id")
+	docUUID, err := parseUUID(docIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format document_id tidak valid"})
+	}
+
+	workspaceIDStr := c.Params("workspace_id")
+	workspaceUUID, err := parseUUID(workspaceIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format workspace_id tidak valid"})
+	}
+
+	// Ambil dokumen untuk folder_id dan title (digunakan sebagai parameter query)
+	doc, err := h.DB.GetDocument(c.Context(), database.GetDocumentParams{
+		ID:          docUUID,
+		WorkspaceID: workspaceUUID,
+	})
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Dokumen tidak ditemukan"})
+	}
+
+	notes, err := h.DB.GetRelatedNotes(c.Context(), database.GetRelatedNotesParams{
+		ID:          docUUID,
+		WorkspaceID: workspaceUUID,
+		FolderID:    doc.FolderID,
+		Similarity:  doc.Title,
+	})
+	if err != nil {
+		log.Printf("Error getting related notes: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal mengambil catatan terkait"})
+	}
+
+	if notes == nil {
+		notes = []database.GetRelatedNotesRow{}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"document_id": docIDStr,
+		"related":     notes,
+		"total":       len(notes),
+	})
+}

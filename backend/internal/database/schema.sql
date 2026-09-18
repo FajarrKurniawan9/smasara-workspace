@@ -1,3 +1,7 @@
+-- pg_trgm: ekstensi untuk kemiripan teks (trigram). Dibutuhkan untuk search (T-108)
+-- dan rekomendasi catatan terkait (T-109).
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT UNIQUE NOT NULL,
@@ -54,6 +58,7 @@ CREATE TABLE documents (
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMP,
+    locked_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
     UNIQUE (workspace_id, slug)
 );
 

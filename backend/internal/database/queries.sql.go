@@ -84,7 +84,7 @@ const createDocument = `-- name: CreateDocument :one
 
 INSERT INTO documents (workspace_id, folder_id, author_id, title, content, is_public, slug)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at
+RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at, locked_by
 `
 
 type CreateDocumentParams struct {
@@ -126,6 +126,7 @@ func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.LockedBy,
 	)
 	return i, err
 }
@@ -258,8 +259,28 @@ func (q *Queries) DeleteFolder(ctx context.Context, arg DeleteFolderParams) (int
 	return result.RowsAffected(), nil
 }
 
+const forceUnlockDocument = `-- name: ForceUnlockDocument :execrows
+UPDATE documents
+SET locked_by = NULL, updated_at = NOW()
+WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL AND locked_by IS NOT NULL
+`
+
+type ForceUnlockDocumentParams struct {
+	ID          pgtype.UUID
+	WorkspaceID pgtype.UUID
+}
+
+// Lepas kunci paksa (oleh OWNER): set locked_by = NULL tanpa peduli siapa pengunci.
+func (q *Queries) ForceUnlockDocument(ctx context.Context, arg ForceUnlockDocumentParams) (int64, error) {
+	result, err := q.db.Exec(ctx, forceUnlockDocument, arg.ID, arg.WorkspaceID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const getDocument = `-- name: GetDocument :one
-SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at FROM documents 
+SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at, locked_by FROM documents 
 WHERE id = $1 AND workspace_id = $2 LIMIT 1
 `
 
@@ -286,6 +307,7 @@ func (q *Queries) GetDocument(ctx context.Context, arg GetDocumentParams) (Docum
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.LockedBy,
 	)
 	return i, err
 }
@@ -307,6 +329,30 @@ func (q *Queries) GetDocumentBySlug(ctx context.Context, arg GetDocumentBySlugPa
 	var id pgtype.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getDocumentLock = `-- name: GetDocumentLock :one
+SELECT id, locked_by FROM documents
+WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL
+LIMIT 1
+`
+
+type GetDocumentLockParams struct {
+	ID          pgtype.UUID
+	WorkspaceID pgtype.UUID
+}
+
+type GetDocumentLockRow struct {
+	ID       pgtype.UUID
+	LockedBy pgtype.UUID
+}
+
+// Ambil status kunci dokumen.
+func (q *Queries) GetDocumentLock(ctx context.Context, arg GetDocumentLockParams) (GetDocumentLockRow, error) {
+	row := q.db.QueryRow(ctx, getDocumentLock, arg.ID, arg.WorkspaceID)
+	var i GetDocumentLockRow
+	err := row.Scan(&i.ID, &i.LockedBy)
+	return i, err
 }
 
 const getFolderWithIndex = `-- name: GetFolderWithIndex :one
@@ -447,9 +493,103 @@ func (q *Queries) GetPublicDocumentBySlug(ctx context.Context, arg GetPublicDocu
 	return i, err
 }
 
+const getRelatedNotes = `-- name: GetRelatedNotes :many
+
+WITH current_doc AS (
+    SELECT d.id AS doc_id, d.content FROM documents d WHERE d.id = $1
+),
+extracted_links AS (
+    SELECT DISTINCT unnest(regexp_matches(cd.content, '\[\[([^\]]+)\]\]', 'g')) AS slug
+    FROM current_doc cd
+),
+doc_links AS (
+    SELECT DISTINCT d2.id, d2.title, d2.slug, 1.0 AS weight
+    FROM documents d2
+    JOIN extracted_links el ON el.slug = d2.slug
+    WHERE d2.workspace_id = $2
+      AND d2.deleted_at IS NULL
+      AND d2.id != $1
+),
+doc_siblings AS (
+    SELECT d3.id, d3.title, d3.slug, 0.5 AS weight
+    FROM documents d3
+    WHERE d3.workspace_id = $2
+      AND d3.deleted_at IS NULL
+      AND d3.id != $1
+      AND d3.folder_id IS NOT DISTINCT FROM $3
+      AND d3.id NOT IN (SELECT id FROM doc_links)
+),
+doc_similar AS (
+    SELECT d4.id, d4.title, d4.slug, GREATEST(similarity(d4.title, $4), 0.1) AS weight
+    FROM documents d4
+    WHERE d4.workspace_id = $2
+      AND d4.deleted_at IS NULL
+      AND d4.id != $1
+      AND d4.id NOT IN (SELECT id FROM doc_links)
+      AND d4.id NOT IN (SELECT id FROM doc_siblings)
+      AND similarity(d4.title, $4) > 0.05
+)
+SELECT id, title, slug, weight FROM doc_links
+UNION ALL
+SELECT id, title, slug, weight FROM doc_siblings
+UNION ALL
+SELECT id, title, slug, weight FROM doc_similar
+ORDER BY weight DESC
+LIMIT 10
+`
+
+type GetRelatedNotesParams struct {
+	ID          pgtype.UUID
+	WorkspaceID pgtype.UUID
+	FolderID    pgtype.UUID
+	Similarity  string
+}
+
+type GetRelatedNotesRow struct {
+	ID     pgtype.UUID
+	Title  string
+	Slug   string
+	Weight float64
+}
+
+// ==========================================
+// T-109: CATATAN TERKAIT (Related Notes)
+// ==========================================
+// Rekomendasi catatan terkait: explicit [[link]] > sibling folder > trigram judul.
+// $1 = document_id, $2 = workspace_id, $3 = folder_id, $4 = title_for_similarity.
+func (q *Queries) GetRelatedNotes(ctx context.Context, arg GetRelatedNotesParams) ([]GetRelatedNotesRow, error) {
+	rows, err := q.db.Query(ctx, getRelatedNotes,
+		arg.ID,
+		arg.WorkspaceID,
+		arg.FolderID,
+		arg.Similarity,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetRelatedNotesRow
+	for rows.Next() {
+		var i GetRelatedNotesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Slug,
+			&i.Weight,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTrashedDocuments = `-- name: GetTrashedDocuments :many
 
-SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at FROM documents
+SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at, locked_by FROM documents
 WHERE workspace_id = $1 AND deleted_at IS NOT NULL
 ORDER BY deleted_at DESC
 `
@@ -481,6 +621,7 @@ func (q *Queries) GetTrashedDocuments(ctx context.Context, workspaceID pgtype.UU
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.LockedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -549,7 +690,7 @@ func (q *Queries) GetUserWorkspaces(ctx context.Context, userID pgtype.UUID) ([]
 }
 
 const getWorkspaceDocuments = `-- name: GetWorkspaceDocuments :many
-SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at FROM documents
+SELECT id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at, locked_by FROM documents
 WHERE workspace_id = $1 AND deleted_at IS NULL
 ORDER BY updated_at DESC
 `
@@ -578,6 +719,7 @@ func (q *Queries) GetWorkspaceDocuments(ctx context.Context, workspaceID pgtype.
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
+			&i.LockedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -641,6 +783,31 @@ func (q *Queries) HardDeleteDocument(ctx context.Context, arg HardDeleteDocument
 	return result.RowsAffected(), nil
 }
 
+const lockDocument = `-- name: LockDocument :execrows
+
+UPDATE documents
+SET locked_by = $3, updated_at = NOW()
+WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL AND locked_by IS NULL
+`
+
+type LockDocumentParams struct {
+	ID          pgtype.UUID
+	WorkspaceID pgtype.UUID
+	LockedBy    pgtype.UUID
+}
+
+// ==========================================
+// T-107: KUNCI READ-ONLY PER DOKUMEN
+// ==========================================
+// Kunci dokumen: set locked_by = user_id. Hanya berhasil jika belum dikunci.
+func (q *Queries) LockDocument(ctx context.Context, arg LockDocumentParams) (int64, error) {
+	result, err := q.db.Exec(ctx, lockDocument, arg.ID, arg.WorkspaceID, arg.LockedBy)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const restoreDocument = `-- name: RestoreDocument :execrows
 
 UPDATE documents
@@ -660,6 +827,80 @@ func (q *Queries) RestoreDocument(ctx context.Context, arg RestoreDocumentParams
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const searchDocuments = `-- name: SearchDocuments :many
+
+SELECT
+    d.id, d.title, d.slug, d.folder_id, d.is_public, d.published_at,
+    d.updated_at,
+    ts_rank(d.search_vector, to_tsquery('simple', $2)) AS rank,
+    similarity(d.title, $2) AS title_sim
+FROM documents d
+WHERE d.workspace_id = $1
+  AND d.deleted_at IS NULL
+  AND (
+      d.search_vector @@ to_tsquery('simple', $2)
+      OR similarity(d.title, $2) > 0.1
+  )
+ORDER BY
+    ts_rank(d.search_vector, to_tsquery('simple', $2)) * 2
+    + similarity(d.title, $2) DESC
+LIMIT 50
+`
+
+type SearchDocumentsParams struct {
+	WorkspaceID pgtype.UUID
+	ToTsquery   string
+}
+
+type SearchDocumentsRow struct {
+	ID          pgtype.UUID
+	Title       string
+	Slug        string
+	FolderID    pgtype.UUID
+	IsPublic    bool
+	PublishedAt pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamp
+	Rank        float32
+	TitleSim    float32
+}
+
+// ==========================================
+// T-108: PENCARIAN PINTAR (Search)
+// ==========================================
+// Pencarian full-text: tsvector rank + pg_trgm similarity.
+// Ranking: title bobot lebih tinggi dari content.
+// Hanya dokumen aktif (deleted_at IS NULL) di workspace yang sama.
+// Pengguna yang bukan OWNER hanya melihat dokumen yang bisa diakses via role.
+func (q *Queries) SearchDocuments(ctx context.Context, arg SearchDocumentsParams) ([]SearchDocumentsRow, error) {
+	rows, err := q.db.Query(ctx, searchDocuments, arg.WorkspaceID, arg.ToTsquery)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SearchDocumentsRow
+	for rows.Next() {
+		var i SearchDocumentsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Slug,
+			&i.FolderID,
+			&i.IsPublic,
+			&i.PublishedAt,
+			&i.UpdatedAt,
+			&i.Rank,
+			&i.TitleSim,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setFolderIndexDocument = `-- name: SetFolderIndexDocument :execrows
@@ -702,6 +943,27 @@ func (q *Queries) SoftDeleteDocument(ctx context.Context, arg SoftDeleteDocument
 	return result.RowsAffected(), nil
 }
 
+const unlockDocument = `-- name: UnlockDocument :execrows
+UPDATE documents
+SET locked_by = NULL, updated_at = NOW()
+WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL AND locked_by = $3
+`
+
+type UnlockDocumentParams struct {
+	ID          pgtype.UUID
+	WorkspaceID pgtype.UUID
+	LockedBy    pgtype.UUID
+}
+
+// Lepas kunci dokumen: set locked_by = NULL. Hanya berhasil jika dikunci oleh user yang sama.
+func (q *Queries) UnlockDocument(ctx context.Context, arg UnlockDocumentParams) (int64, error) {
+	result, err := q.db.Exec(ctx, unlockDocument, arg.ID, arg.WorkspaceID, arg.LockedBy)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const updateDocument = `-- name: UpdateDocument :one
 UPDATE documents
 SET 
@@ -712,7 +974,7 @@ SET
     updated_at = NOW(),
     version = version + 1
 WHERE id = $1 AND workspace_id = $2 AND version = $7
-RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at
+RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slug, version, search_vector, published_at, created_at, updated_at, deleted_at, locked_by
 `
 
 type UpdateDocumentParams struct {
@@ -753,6 +1015,7 @@ func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedAt,
+		&i.LockedBy,
 	)
 	return i, err
 }

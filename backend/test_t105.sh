@@ -76,7 +76,7 @@ if [ "$HIT2" -ne 1 ]; then echo "FAIL: restore tidak mengembalikan index"; exit 
 
 echo ""
 echo "=== A8. Validasi CheckDocumentInWorkspace: dokumen workspace lain ditolak ==="
-WS2=$($PSQL -t -A -c "
+WS2=$($PSQL -q -t -A -c "
 INSERT INTO workspaces (name, slug, created_by)
 SELECT 'TEST_T105 WS2', 'test-t105-ws2', p.id FROM profiles p LIMIT 1 RETURNING id;")
 XWS=$($PSQL -t -A -c "
@@ -132,7 +132,7 @@ curl -s -o /dev/null -b "$JAR" -X POST "$BASE/api/profiles" \
 curl -s -b "$JAR" -X POST "$BASE/api/workspaces" \
   -H "Content-Type: application/json" \
   -d "{\"name\": \"WS T105 $TS\", \"slug\": \"ws-t105-$TS\"}" > /tmp/t105_ws.json
-WS_ID=$(python3 -c "import sys,json;print(json.load(sys.stdin)['workspace']['id'])" < /tmp/t105_ws.json)
+WS_ID=$(python3 -c "import sys,json;print(json.load(sys.stdin)['workspace']['ID'])" < /tmp/t105_ws.json)
 echo "workspace_id=$WS_ID"
 
 curl -s -b "$JAR" -X POST "$BASE/api/workspaces/$WS_ID/folders" \

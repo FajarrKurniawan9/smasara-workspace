@@ -60,3 +60,24 @@ func RequireWorkspaceAccess(db *database.Queries) fiber.Handler {
 		return c.Next()
 	}
 }
+
+// RequireWriteAccess memblokir VIEWER dari operasi tulis (create/update/delete).
+// Harus dipanggil SETELAH RequireWorkspaceAccess (agar workspace_role sudah terisi).
+func RequireWriteAccess() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		role, ok := c.Locals("workspace_role").(pgtype.Text)
+		if !ok || !role.Valid {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "Forbidden: role workspace tidak dikenali",
+			})
+		}
+
+		if role.String == "VIEWER" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "Forbidden: Viewer tidak memiliki akses tulis",
+			})
+		}
+
+		return c.Next()
+	}
+}

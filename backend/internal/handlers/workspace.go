@@ -119,3 +119,57 @@ func (h *WorkspaceHandler) GetUserWorkspaces(c *fiber.Ctx) error {
 		"workspaces": workspaces,
 	})
 }
+
+// AddWorkspaceMember menambahkan anggota baru ke workspace (T-106).
+// Hanya OWNER/EDITOR yang boleh mengundang. Role baru tidak boleh OWNER.
+func (h *WorkspaceHandler) AddWorkspaceMember(c *fiber.Ctx) error {
+	workspaceIDStr := c.Params("workspace_id")
+	workspaceUUID, err := parseWorkspaceUUID(workspaceIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format workspace_id tidak valid"})
+	}
+
+	// Validasi role: hanya boleh EDITOR atau VIEWER (OWNER hanya saat buat workspace)
+	type AddMemberRequest struct {
+		UserID string `json:"user_id"`
+		Role   string `json:"role"`
+	}
+	var req AddMemberRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format JSON tidak valid"})
+	}
+
+	roleStr := strings.TrimSpace(strings.ToUpper(req.Role))
+	if roleStr != "EDITOR" && roleStr != "VIEWER" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Role tidak valid. Hanya boleh EDITOR atau VIEWER",
+		})
+	}
+
+	var userUUID pgtype.UUID
+	if err := userUUID.Scan(req.UserID); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format user_id tidak valid"})
+	}
+
+	err = h.DB.AddWorkspaceMember(c.Context(), database.AddWorkspaceMemberParams{
+		WorkspaceID: workspaceUUID,
+		UserID:      userUUID,
+		Role:        pgtype.Text{String: roleStr, Valid: true},
+	})
+	if err != nil {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error": "Gagal menambahkan anggota. Mungkin user sudah menjadi anggota workspace ini",
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message": "Anggota berhasil ditambahkan ke workspace",
+	})
+}
+
+// parseWorkspaceUUID helper untuk parse workspace_id
+func parseWorkspaceUUID(id string) (pgtype.UUID, error) {
+	var uuid pgtype.UUID
+	err := uuid.Scan(id)
+	return uuid, err
+}

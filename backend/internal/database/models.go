@@ -23,6 +23,7 @@ type Document struct {
 	CreatedAt    pgtype.Timestamp
 	UpdatedAt    pgtype.Timestamp
 	DeletedAt    pgtype.Timestamp
+	LockedBy     pgtype.UUID
 }
 
 type Folder struct {

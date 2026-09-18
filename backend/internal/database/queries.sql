@@ -152,6 +152,109 @@ SET index_document_id = $3, updated_at = NOW()
 WHERE id = $1 AND workspace_id = $2;
 
 -- ==========================================
+-- T-107: KUNCI READ-ONLY PER DOKUMEN
+-- ==========================================
+
+-- name: LockDocument :execrows
+-- Kunci dokumen: set locked_by = user_id. Hanya berhasil jika belum dikunci.
+UPDATE documents
+SET locked_by = $3, updated_at = NOW()
+WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL AND locked_by IS NULL;
+
+-- name: UnlockDocument :execrows
+-- Lepas kunci dokumen: set locked_by = NULL. Hanya berhasil jika dikunci oleh user yang sama.
+UPDATE documents
+SET locked_by = NULL, updated_at = NOW()
+WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL AND locked_by = $3;
+
+-- name: ForceUnlockDocument :execrows
+-- Lepas kunci paksa (oleh OWNER): set locked_by = NULL tanpa peduli siapa pengunci.
+UPDATE documents
+SET locked_by = NULL, updated_at = NOW()
+WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL AND locked_by IS NOT NULL;
+
+-- name: GetDocumentLock :one
+-- Ambil status kunci dokumen.
+SELECT id, locked_by FROM documents
+WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL
+LIMIT 1;
+
+-- ==========================================
+-- T-108: PENCARIAN PINTAR (Search)
+-- ==========================================
+
+-- name: SearchDocuments :many
+-- Pencarian full-text: tsvector rank + pg_trgm similarity.
+-- Ranking: title bobot lebih tinggi dari content.
+-- Hanya dokumen aktif (deleted_at IS NULL) di workspace yang sama.
+-- Pengguna yang bukan OWNER hanya melihat dokumen yang bisa diakses via role.
+SELECT
+    d.id, d.title, d.slug, d.folder_id, d.is_public, d.published_at,
+    d.updated_at,
+    ts_rank(d.search_vector, to_tsquery('simple', $2)) AS rank,
+    similarity(d.title, $2) AS title_sim
+FROM documents d
+WHERE d.workspace_id = $1
+  AND d.deleted_at IS NULL
+  AND (
+      d.search_vector @@ to_tsquery('simple', $2)
+      OR similarity(d.title, $2) > 0.1
+  )
+ORDER BY
+    ts_rank(d.search_vector, to_tsquery('simple', $2)) * 2
+    + similarity(d.title, $2) DESC
+LIMIT 50;
+
+-- ==========================================
+-- T-109: CATATAN TERKAIT (Related Notes)
+-- ==========================================
+
+-- name: GetRelatedNotes :many
+-- Rekomendasi catatan terkait: explicit [[link]] > sibling folder > trigram judul.
+-- $1 = document_id, $2 = workspace_id, $3 = folder_id, $4 = title_for_similarity.
+WITH current_doc AS (
+    SELECT d.id AS doc_id, d.content FROM documents d WHERE d.id = $1
+),
+extracted_links AS (
+    SELECT DISTINCT unnest(regexp_matches(cd.content, '\[\[([^\]]+)\]\]', 'g')) AS slug
+    FROM current_doc cd
+),
+doc_links AS (
+    SELECT DISTINCT d2.id, d2.title, d2.slug, 1.0 AS weight
+    FROM documents d2
+    JOIN extracted_links el ON el.slug = d2.slug
+    WHERE d2.workspace_id = $2
+      AND d2.deleted_at IS NULL
+      AND d2.id != $1
+),
+doc_siblings AS (
+    SELECT d3.id, d3.title, d3.slug, 0.5 AS weight
+    FROM documents d3
+    WHERE d3.workspace_id = $2
+      AND d3.deleted_at IS NULL
+      AND d3.id != $1
+      AND d3.folder_id IS NOT DISTINCT FROM $3
+      AND d3.id NOT IN (SELECT id FROM doc_links)
+),
+doc_similar AS (
+    SELECT d4.id, d4.title, d4.slug, GREATEST(similarity(d4.title, $4), 0.1) AS weight
+    FROM documents d4
+    WHERE d4.workspace_id = $2
+      AND d4.deleted_at IS NULL
+      AND d4.id != $1
+      AND d4.id NOT IN (SELECT id FROM doc_links)
+      AND d4.id NOT IN (SELECT id FROM doc_siblings)
+      AND similarity(d4.title, $4) > 0.05
+)
+SELECT id, title, slug, weight FROM doc_links
+UNION ALL
+SELECT id, title, slug, weight FROM doc_siblings
+UNION ALL
+SELECT id, title, slug, weight FROM doc_similar
+ORDER BY weight DESC
+LIMIT 10;
+
+-- ==========================================
 -- GERBANG PUBLIK (Public Share Read-Only)
 -- ==========================================
 
