@@ -33,6 +33,8 @@ CREATE TABLE folders (
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     parent_id UUID REFERENCES folders(id) ON DELETE CASCADE,
+    -- T-105: pointer ke dokumen indeks/README folder. SET NULL saat dokumen di-hard-delete.
+    index_document_id UUID REFERENCES documents(id) ON DELETE SET NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

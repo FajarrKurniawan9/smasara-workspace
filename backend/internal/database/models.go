@@ -26,12 +26,13 @@ type Document struct {
 }
 
 type Folder struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
-	Name        string
-	ParentID    pgtype.UUID
-	CreatedAt   pgtype.Timestamp
-	UpdatedAt   pgtype.Timestamp
+	ID              pgtype.UUID
+	WorkspaceID     pgtype.UUID
+	Name            string
+	ParentID        pgtype.UUID
+	IndexDocumentID pgtype.UUID
+	CreatedAt       pgtype.Timestamp
+	UpdatedAt       pgtype.Timestamp
 }
 
 type Profile struct {

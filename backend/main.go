@@ -93,6 +93,8 @@ workspaceGroup := app.Group(
 	// -- Rute Folder --
 	workspaceGroup.Post("/folders", folderHandler.CreateFolder)
 	workspaceGroup.Get("/folders", folderHandler.GetWorkspaceFolders)
+	workspaceGroup.Get("/folders/:folder_id", folderHandler.GetFolder)              // <-- T-105: folder + dokumen indeks
+	workspaceGroup.Put("/folders/:folder_id/index", folderHandler.SetFolderIndexDocument) // <-- T-105: pasang/hapus index
 	workspaceGroup.Delete("/folders/:folder_id", folderHandler.DeleteFolder) // <-- BARU: Hapus Folder Cascading
 
 	// -- Rute Recycle Bin (Trash) --

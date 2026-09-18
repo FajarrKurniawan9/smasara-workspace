@@ -120,6 +120,37 @@ WHERE id = $1 AND workspace_id = $2;
 DELETE FROM folders
 WHERE id = $1 AND workspace_id = $2;
 
+-- name: GetFolderWithIndex :one
+-- T-105: folder satuan + dokumen indeksnya (README/wiki folder).
+-- LEFT JOIN: folder tanpa index TETAP tampil (field index_* bernilai NULL).
+-- Index doc yang di-soft-delete dianggap tidak ada (tidak dikembalikan).
+SELECT
+    f.id, f.workspace_id, f.parent_id, f.name, f.index_document_id,
+    f.created_at, f.updated_at,
+    d.id AS index_doc_id,
+    d.title AS index_doc_title,
+    d.slug AS index_doc_slug,
+    d.content AS index_doc_content,
+    d.updated_at AS index_doc_updated_at
+FROM folders f
+LEFT JOIN documents d
+    ON d.id = f.index_document_id
+    AND d.deleted_at IS NULL
+WHERE f.id = $1 AND f.workspace_id = $2
+LIMIT 1;
+
+-- name: CheckDocumentInWorkspace :one
+-- T-105 (validasi setter): dokumen harus milik workspace yang sama & belum dihapus.
+SELECT id FROM documents
+WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL
+LIMIT 1;
+
+-- name: SetFolderIndexDocument :execrows
+-- T-105: pasang/hapus dokumen indeks folder. $3 NULL (valid:false) = hapus index.
+UPDATE folders
+SET index_document_id = $3, updated_at = NOW()
+WHERE id = $1 AND workspace_id = $2;
+
 -- ==========================================
 -- GERBANG PUBLIK (Public Share Read-Only)
 -- ==========================================

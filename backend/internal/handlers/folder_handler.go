@@ -130,6 +130,119 @@ func (h *FolderHandler) GetWorkspaceFolders(c *fiber.Ctx) error {
 	})
 }
 
+// GetFolder mengambil satu folder beserta dokumen indeksnya (README/wiki folder)
+func (h *FolderHandler) GetFolder(c *fiber.Ctx) error {
+	// 1. Tangkap workspace_id dari URL (Mencegah IDOR)
+	workspaceParam := c.Params("workspace_id")
+	var workspaceID pgtype.UUID
+	if err := workspaceID.Scan(workspaceParam); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format workspace_id pada URL tidak valid"})
+	}
+
+	folderParam := c.Params("folder_id")
+	var folderID pgtype.UUID
+	if err := folderID.Scan(folderParam); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format folder_id tidak valid"})
+	}
+
+	// 2. Tarik folder + dokumen indeks (LEFT JOIN: folder tanpa index tetap tampil)
+	row, err := h.DB.GetFolderWithIndex(c.Context(), database.GetFolderWithIndexParams{
+		ID:          folderID,
+		WorkspaceID: workspaceID,
+	})
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Folder tidak ditemukan atau Anda tidak memiliki akses"})
+	}
+
+	// 3. Susun respons: index_document = null jika folder tak punya index
+	//    (atau dokumen indeksnya sedang di Recycle Bin).
+	var indexDoc interface{}
+	if row.IndexDocID.Valid {
+		indexDoc = fiber.Map{
+			"id":         row.IndexDocID,
+			"title":      row.IndexDocTitle.String,
+			"slug":       row.IndexDocSlug.String,
+			"content":    row.IndexDocContent.String,
+			"updated_at": row.IndexDocUpdatedAt,
+		}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Berhasil mengambil folder",
+		"folder": fiber.Map{
+			"id":                row.ID,
+			"workspace_id":      row.WorkspaceID,
+			"parent_id":         row.ParentID,
+			"name":              row.Name,
+			"index_document_id": row.IndexDocumentID,
+			"created_at":        row.CreatedAt,
+			"updated_at":        row.UpdatedAt,
+		},
+		"index_document": indexDoc,
+	})
+}
+
+// SetFolderIndexDocument memasang/menghapus dokumen indeks (README) sebuah folder.
+// Body {"document_id": "<uuid>"} untuk pasang; string kosong = hapus index.
+func (h *FolderHandler) SetFolderIndexDocument(c *fiber.Ctx) error {
+	// 1. Tangkap workspace_id + folder_id dari URL (Mencegah IDOR)
+	workspaceParam := c.Params("workspace_id")
+	var workspaceID pgtype.UUID
+	if err := workspaceID.Scan(workspaceParam); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format workspace_id pada URL tidak valid"})
+	}
+
+	folderParam := c.Params("folder_id")
+	var folderID pgtype.UUID
+	if err := folderID.Scan(folderParam); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format folder_id tidak valid"})
+	}
+
+	type SetIndexRequest struct {
+		DocumentID string `json:"document_id"`
+	}
+	var req SetIndexRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format JSON tidak valid"})
+	}
+	req.DocumentID = strings.TrimSpace(req.DocumentID)
+
+	// 2. Validasi dokumen indeks: harus milik workspace yang sama & belum dihapus.
+	var docUUID pgtype.UUID
+	if req.DocumentID != "" {
+		if err := docUUID.Scan(req.DocumentID); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format document_id tidak valid"})
+		}
+		_, err := h.DB.CheckDocumentInWorkspace(c.Context(), database.CheckDocumentInWorkspaceParams{
+			ID:          docUUID,
+			WorkspaceID: workspaceID,
+		})
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Dokumen indeks tidak valid (bukan milik workspace ini atau sudah dihapus)",
+			})
+		}
+	}
+
+	// 3. Eksekusi: docUUID Valid:false => index_document_id = NULL (hapus index).
+	rows, err := h.DB.SetFolderIndexDocument(c.Context(), database.SetFolderIndexDocumentParams{
+		ID:              folderID,
+		WorkspaceID:     workspaceID,
+		IndexDocumentID: docUUID,
+	})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal memperbarui dokumen indeks folder"})
+	}
+	if rows == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Folder tidak ditemukan atau Anda tidak memiliki akses"})
+	}
+
+	if req.DocumentID == "" {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Dokumen indeks folder dihapus"})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Dokumen indeks folder diperbarui"})
+}
+
 // DeleteFolder menghapus folder beserta seluruh dokumen di dalamnya (Cascading Delete)
 func (h *FolderHandler) DeleteFolder(c *fiber.Ctx) error {
 	folderParam := c.Params("folder_id")

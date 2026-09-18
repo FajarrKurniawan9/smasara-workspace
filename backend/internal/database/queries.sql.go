@@ -27,6 +27,25 @@ func (q *Queries) AddWorkspaceMember(ctx context.Context, arg AddWorkspaceMember
 	return err
 }
 
+const checkDocumentInWorkspace = `-- name: CheckDocumentInWorkspace :one
+SELECT id FROM documents
+WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL
+LIMIT 1
+`
+
+type CheckDocumentInWorkspaceParams struct {
+	ID          pgtype.UUID
+	WorkspaceID pgtype.UUID
+}
+
+// T-105 (validasi setter): dokumen harus milik workspace yang sama & belum dihapus.
+func (q *Queries) CheckDocumentInWorkspace(ctx context.Context, arg CheckDocumentInWorkspaceParams) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, checkDocumentInWorkspace, arg.ID, arg.WorkspaceID)
+	var id pgtype.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const checkFolderBelongsToWorkspace = `-- name: CheckFolderBelongsToWorkspace :one
 SELECT id FROM folders 
 WHERE id = $1 AND workspace_id = $2 LIMIT 1
@@ -115,7 +134,7 @@ const createFolder = `-- name: CreateFolder :one
 
 INSERT INTO folders (workspace_id, name, parent_id)
 VALUES ($1, $2, $3)
-RETURNING id, workspace_id, name, parent_id, created_at, updated_at
+RETURNING id, workspace_id, name, parent_id, index_document_id, created_at, updated_at
 `
 
 type CreateFolderParams struct {
@@ -135,6 +154,7 @@ func (q *Queries) CreateFolder(ctx context.Context, arg CreateFolderParams) (Fol
 		&i.WorkspaceID,
 		&i.Name,
 		&i.ParentID,
+		&i.IndexDocumentID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -287,6 +307,66 @@ func (q *Queries) GetDocumentBySlug(ctx context.Context, arg GetDocumentBySlugPa
 	var id pgtype.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const getFolderWithIndex = `-- name: GetFolderWithIndex :one
+SELECT
+    f.id, f.workspace_id, f.parent_id, f.name, f.index_document_id,
+    f.created_at, f.updated_at,
+    d.id AS index_doc_id,
+    d.title AS index_doc_title,
+    d.slug AS index_doc_slug,
+    d.content AS index_doc_content,
+    d.updated_at AS index_doc_updated_at
+FROM folders f
+LEFT JOIN documents d
+    ON d.id = f.index_document_id
+    AND d.deleted_at IS NULL
+WHERE f.id = $1 AND f.workspace_id = $2
+LIMIT 1
+`
+
+type GetFolderWithIndexParams struct {
+	ID          pgtype.UUID
+	WorkspaceID pgtype.UUID
+}
+
+type GetFolderWithIndexRow struct {
+	ID                pgtype.UUID
+	WorkspaceID       pgtype.UUID
+	ParentID          pgtype.UUID
+	Name              string
+	IndexDocumentID   pgtype.UUID
+	CreatedAt         pgtype.Timestamp
+	UpdatedAt         pgtype.Timestamp
+	IndexDocID        pgtype.UUID
+	IndexDocTitle     pgtype.Text
+	IndexDocSlug      pgtype.Text
+	IndexDocContent   pgtype.Text
+	IndexDocUpdatedAt pgtype.Timestamp
+}
+
+// T-105: folder satuan + dokumen indeksnya (README/wiki folder).
+// LEFT JOIN: folder tanpa index TETAP tampil (field index_* bernilai NULL).
+// Index doc yang di-soft-delete dianggap tidak ada (tidak dikembalikan).
+func (q *Queries) GetFolderWithIndex(ctx context.Context, arg GetFolderWithIndexParams) (GetFolderWithIndexRow, error) {
+	row := q.db.QueryRow(ctx, getFolderWithIndex, arg.ID, arg.WorkspaceID)
+	var i GetFolderWithIndexRow
+	err := row.Scan(
+		&i.ID,
+		&i.WorkspaceID,
+		&i.ParentID,
+		&i.Name,
+		&i.IndexDocumentID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IndexDocID,
+		&i.IndexDocTitle,
+		&i.IndexDocSlug,
+		&i.IndexDocContent,
+		&i.IndexDocUpdatedAt,
+	)
+	return i, err
 }
 
 const getProfileByID = `-- name: GetProfileByID :one
@@ -510,7 +590,7 @@ func (q *Queries) GetWorkspaceDocuments(ctx context.Context, workspaceID pgtype.
 }
 
 const getWorkspaceFolders = `-- name: GetWorkspaceFolders :many
-SELECT id, workspace_id, name, parent_id, created_at, updated_at FROM folders
+SELECT id, workspace_id, name, parent_id, index_document_id, created_at, updated_at FROM folders
 WHERE workspace_id = $1
 ORDER BY created_at ASC
 `
@@ -529,6 +609,7 @@ func (q *Queries) GetWorkspaceFolders(ctx context.Context, workspaceID pgtype.UU
 			&i.WorkspaceID,
 			&i.Name,
 			&i.ParentID,
+			&i.IndexDocumentID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -575,6 +656,27 @@ type RestoreDocumentParams struct {
 // Ganti query Hapus, Restore, dan Update lu menjadi seperti ini:
 func (q *Queries) RestoreDocument(ctx context.Context, arg RestoreDocumentParams) (int64, error) {
 	result, err := q.db.Exec(ctx, restoreDocument, arg.ID, arg.WorkspaceID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const setFolderIndexDocument = `-- name: SetFolderIndexDocument :execrows
+UPDATE folders
+SET index_document_id = $3, updated_at = NOW()
+WHERE id = $1 AND workspace_id = $2
+`
+
+type SetFolderIndexDocumentParams struct {
+	ID              pgtype.UUID
+	WorkspaceID     pgtype.UUID
+	IndexDocumentID pgtype.UUID
+}
+
+// T-105: pasang/hapus dokumen indeks folder. $3 NULL (valid:false) = hapus index.
+func (q *Queries) SetFolderIndexDocument(ctx context.Context, arg SetFolderIndexDocumentParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setFolderIndexDocument, arg.ID, arg.WorkspaceID, arg.IndexDocumentID)
 	if err != nil {
 		return 0, err
 	}
