@@ -3,6 +3,7 @@ package handlers
 import (
 	// Catatan: Ubah "smasara" dengan nama module di go.mod lu
 	"context"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -96,6 +97,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 
 	secretKey := os.Getenv("JWT_SECRET")
 	if secretKey == "" {
+		log.Println("WARNING: JWT_SECRET kosong. Menggunakan fallback kunci rahasia. JANGAN GUNAKAN INI DI PRODUCTION!")
 		secretKey = "smasara-knowledge-vault-secret"
 	}
 
@@ -105,13 +107,14 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	}
 
 	// 5. Tanamkan Token ke dalam HTTP-Only Cookie (Brankas Baja)
+	isProduction := os.Getenv("APP_ENV") == "production"
 	c.Cookie(&fiber.Cookie{
 		Name:     "jwt_smasara",
 		Value:    t,
 		Expires:  time.Now().Add(72 * time.Hour), // Sesuai dengan masa berlaku token
 		HTTPOnly: true,                           // Anti-XSS (Mustahil dibaca JavaScript)
 		SameSite: "Lax",                          // Anti-CSRF (Gunakan "Lax" untuk dev lokal)
-		// Secure: true,                         // TODO: Aktifkan (uncomment) saat Production dengan HTTPS
+		Secure:   isProduction,
 	})
 
 	// 6. Dikembalikan (Response sukses TANPA mengirim token di JSON body)

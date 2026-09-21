@@ -30,7 +30,7 @@
 		<div
 			class="flex h-16 items-center border-b border-gray-200 px-6 font-bold text-gray-800 text-lg"
 		>
-			SmaraSmasara
+			Smasara
 		</div>
 		<div class="flex-1 overflow-y-auto p-4">
 			<nav class="space-y-1">
@@ -44,12 +44,11 @@
 					<p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Folders</p>
 					<!-- Placeholder for Nested Folders -->
 					<div class="mt-2 space-y-1 pl-3">
-						<a
-							href="#"
-							class="block rounded-md px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+						<button
+							class="w-full text-left block rounded-md px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
 						>
 							📁 Uncategorized
-						</a>
+						</button>
 					</div>
 				</div>
 			</nav>
@@ -83,7 +82,7 @@
 						/>
 					</svg>
 				</button>
-				<span class="ml-4 font-bold text-gray-800">SmaraSmasara</span>
+				<span class="ml-4 font-bold text-gray-800">Smasara</span>
 			</div>
 
 			<div class="hidden md:flex ml-auto items-center space-x-4">

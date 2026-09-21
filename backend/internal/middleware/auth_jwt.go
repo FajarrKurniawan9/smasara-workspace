@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -23,6 +24,7 @@ func Protected() fiber.Handler {
 		// Ambil kunci rahasia (harus sama persis dengan yang di auth.go)
 		secretKey := os.Getenv("JWT_SECRET")
 		if secretKey == "" {
+			log.Println("WARNING: JWT_SECRET kosong. Menggunakan fallback kunci rahasia. JANGAN GUNAKAN INI DI PRODUCTION!")
 			secretKey = "smasara-knowledge-vault-secret"
 		}
 

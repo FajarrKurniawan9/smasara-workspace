@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '../layout.css';
+	import './layout.css';
 	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { fetchApi } from '$lib/api';
