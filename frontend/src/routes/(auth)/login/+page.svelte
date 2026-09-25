@@ -21,7 +21,7 @@
 			});
 
 			// Verify if JWT is successfully stored by hitting /api/me
-			const me = await fetchApi('/api/me');
+			const me = await fetchApi<{ user_id: string }>('/api/me');
 			auth.setAuth(me.user_id);
 			goto('/');
 		} catch (err: any) {

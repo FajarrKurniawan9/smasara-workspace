@@ -9,58 +9,58 @@ import (
 )
 
 type Document struct {
-	ID           pgtype.UUID
-	WorkspaceID  pgtype.UUID
-	FolderID     pgtype.UUID
-	AuthorID     pgtype.UUID
-	Title        string
-	Content      pgtype.Text
-	IsPublic     bool
-	Slug         string
-	Version      int32
-	SearchVector interface{}
-	PublishedAt  pgtype.Timestamptz
-	CreatedAt    pgtype.Timestamp
-	UpdatedAt    pgtype.Timestamp
-	DeletedAt    pgtype.Timestamp
-	LockedBy     pgtype.UUID
+	ID           pgtype.UUID        `json:"id"`
+	WorkspaceID  pgtype.UUID        `json:"workspace_id"`
+	FolderID     pgtype.UUID        `json:"folder_id"`
+	AuthorID     pgtype.UUID        `json:"author_id"`
+	Title        string             `json:"title"`
+	Content      pgtype.Text        `json:"content"`
+	IsPublic     bool               `json:"is_public"`
+	Slug         string             `json:"slug"`
+	Version      int32              `json:"version"`
+	SearchVector interface{}        `json:"search_vector"`
+	PublishedAt  pgtype.Timestamptz `json:"published_at"`
+	CreatedAt    pgtype.Timestamp   `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp   `json:"updated_at"`
+	DeletedAt    pgtype.Timestamp   `json:"deleted_at"`
+	LockedBy     pgtype.UUID        `json:"locked_by"`
 }
 
 type Folder struct {
-	ID              pgtype.UUID
-	WorkspaceID     pgtype.UUID
-	Name            string
-	ParentID        pgtype.UUID
-	IndexDocumentID pgtype.UUID
-	CreatedAt       pgtype.Timestamp
-	UpdatedAt       pgtype.Timestamp
+	ID              pgtype.UUID      `json:"id"`
+	WorkspaceID     pgtype.UUID      `json:"workspace_id"`
+	Name            string           `json:"name"`
+	ParentID        pgtype.UUID      `json:"parent_id"`
+	IndexDocumentID pgtype.UUID      `json:"index_document_id"`
+	CreatedAt       pgtype.Timestamp `json:"created_at"`
+	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
 }
 
 type Profile struct {
-	ID        pgtype.UUID
-	Username  string
-	FullName  string
-	AvatarUrl pgtype.Text
-	UpdatedAt pgtype.Timestamptz
+	ID        pgtype.UUID        `json:"id"`
+	Username  string             `json:"username"`
+	FullName  string             `json:"full_name"`
+	AvatarUrl pgtype.Text        `json:"avatar_url"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type User struct {
-	ID           pgtype.UUID
-	Email        string
-	PasswordHash string
-	CreatedAt    pgtype.Timestamptz
+	ID           pgtype.UUID        `json:"id"`
+	Email        string             `json:"email"`
+	PasswordHash string             `json:"password_hash"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 }
 
 type Workspace struct {
-	ID        pgtype.UUID
-	Name      string
-	Slug      string
-	CreatedBy pgtype.UUID
-	CreatedAt pgtype.Timestamp
+	ID        pgtype.UUID      `json:"id"`
+	Name      string           `json:"name"`
+	Slug      string           `json:"slug"`
+	CreatedBy pgtype.UUID      `json:"created_by"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
 }
 
 type WorkspaceMember struct {
-	WorkspaceID pgtype.UUID
-	UserID      pgtype.UUID
-	Role        pgtype.Text
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	UserID      pgtype.UUID `json:"user_id"`
+	Role        pgtype.Text `json:"role"`
 }

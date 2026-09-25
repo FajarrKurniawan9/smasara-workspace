@@ -25,7 +25,7 @@ curl -s -o /dev/null -b "$JAR" -X POST "$BASE/api/profiles" \
 curl -s -b "$JAR" -X POST "$BASE/api/workspaces" \
   -H "Content-Type: application/json" \
   -d "{\"name\": \"WS T109\", \"slug\": \"ws-t109-$TS\"}" > /tmp/t109_ws.json
-WS_ID=$(python3 -c "import sys,json;print(json.load(sys.stdin)['workspace']['ID'])" < /tmp/t109_ws.json)
+WS_ID=$(python3 -c "import sys,json;d=json.load(sys.stdin)['workspace'];print(d.get('id') or d.get('ID'))" < /tmp/t109_ws.json)
 
 # Buat folder
 curl -s -b "$JAR" -X POST "$BASE/api/workspaces/$WS_ID/folders" \
@@ -37,13 +37,13 @@ FOLDER_ID=$($PSQL -t -A -c "SELECT id FROM folders WHERE workspace_id = '$WS_ID'
 curl -s -b "$JAR" -X POST "$BASE/api/workspaces/$WS_ID/documents" \
   -H "Content-Type: application/json" \
   -d "{\"title\": \"Golang Dasar\", \"content\": \"Lihat juga [[golang-advanced]] untuk lanjutan\", \"folder_id\": \"$FOLDER_ID\"}" > /tmp/t109_docA.json
-DOC_A=$(python3 -c "import sys,json;print(json.load(sys.stdin)['document']['ID'])" < /tmp/t109_docA.json)
+DOC_A=$(python3 -c "import sys,json;d=json.load(sys.stdin)['document'];print(d.get('id') or d.get('ID'))" < /tmp/t109_docA.json)
 
 # Dokumen B: target link dari A
 curl -s -b "$JAR" -X POST "$BASE/api/workspaces/$WS_ID/documents" \
   -H "Content-Type: application/json" \
   -d "{\"title\": \"Golang Advanced\", \"content\": \"Konten lanjutan\", \"folder_id\": \"$FOLDER_ID\"}" > /tmp/t109_docB.json
-DOC_B=$(python3 -c "import sys,json;print(json.load(sys.stdin)['document']['Slug'])" < /tmp/t109_docB.json)
+DOC_B=$(python3 -c "import sys,json;d=json.load(sys.stdin)['document'];print(d.get('slug') or d.get('Slug'))" < /tmp/t109_docB.json)
 
 # Dokumen C: sibling (folder yang sama, berbeda judul)
 curl -s -b "$JAR" -X POST "$BASE/api/workspaces/$WS_ID/documents" \

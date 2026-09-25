@@ -12,7 +12,7 @@
 	onMount(async () => {
 		try {
 			// Cek sesi yang sudah ada saat halaman direload
-			const me = await fetchApi('/api/me');
+			const me = await fetchApi<{ user_id: string }>('/api/me');
 			auth.setAuth(me.user_id);
 
 			// Jika user membuka halaman auth (login/register) dalam posisi sudah login,
@@ -21,7 +21,7 @@
 			if (path === '/login' || path === '/register') {
 				goto('/');
 			}
-		} catch (_err) {
+		} catch {
 			// Gagal (belum login). Jika berada di dashboard, tendang ke login.
 			auth.clearAuth();
 			const path = $page.url.pathname;

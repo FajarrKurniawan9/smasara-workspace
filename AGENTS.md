@@ -33,3 +33,14 @@ Order before considering work done: backend compiles + relevant `test_t*.sh` pas
 - Credential mismatch trap: docker-compose db user is `postgres`, but local `backend/.env` uses `postgre` in `DATABASE_URL`. Local backend + docker db will fail auth until aligned.
 - `docker-compose.yml` contains a hardcoded DB password — known, matches repo's current dev-only posture.
 - Soft-delete is the default document delete; hard delete is a separate route (`DELETE .../documents/:document_id/hard`). Soft delete also unpublishes via DB trigger (migration 0004).
+
+<!-- antislop:start -->
+## antislop
+For UI, copy, people, mobile layout, or code comments work, read `antislop.md` (core) and then the skill for the task:
+- UI / visual: `skills/antislop-ui/SKILL.md`
+- Copy & text: `skills/antislop-copywriting/SKILL.md`
+- People: `skills/antislop-human/SKILL.md`
+- Mobile / responsive: `skills/antislop-layoutmobile/SKILL.md`
+- Code comments: `skills/antislop-code/SKILL.md`
+Before starting, ask the user when antislop applies: during the work, or after it is done.
+<!-- antislop:end -->

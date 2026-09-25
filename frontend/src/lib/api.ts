@@ -1,7 +1,19 @@
 // API client for Smasara
 // Because we have proxy in vite.config.ts, we can just hit /api/...
 
-export async function fetchApi(path: string, options: RequestInit = {}) {
+export class ApiError extends Error {
+	status: number;
+	data: unknown;
+
+	constructor(status: number, message: string, data?: unknown) {
+		super(message);
+		this.name = 'ApiError';
+		this.status = status;
+		this.data = data;
+	}
+}
+
+export async function fetchApi<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
 	const defaultOptions: RequestInit = {
 		headers: {
 			'Content-Type': 'application/json',
@@ -14,14 +26,21 @@ export async function fetchApi(path: string, options: RequestInit = {}) {
 
 	try {
 		const res = await fetch(path, defaultOptions);
-		const data = await res.json().catch(() => null);
+		const data = (await res.json().catch(() => null)) as unknown;
 
 		if (!res.ok) {
-			throw new Error(data?.error || `HTTP error! status: ${res.status}`);
+			const errorMsg =
+				data && typeof data === 'object' && 'error' in data && typeof data.error === 'string'
+					? data.error
+					: `HTTP error! status: ${res.status}`;
+			throw new ApiError(res.status, errorMsg, data);
 		}
 
-		return data;
-	} catch (err: any) {
+		return data as T;
+	} catch (err: unknown) {
+		if (err instanceof ApiError) {
+			throw err;
+		}
 		console.error(`[API Error] ${path}:`, err);
 		throw err;
 	}

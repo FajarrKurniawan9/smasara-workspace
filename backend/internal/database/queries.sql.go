@@ -17,9 +17,9 @@ VALUES ($1, $2, $3)
 `
 
 type AddWorkspaceMemberParams struct {
-	WorkspaceID pgtype.UUID
-	UserID      pgtype.UUID
-	Role        pgtype.Text
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	UserID      pgtype.UUID `json:"user_id"`
+	Role        pgtype.Text `json:"role"`
 }
 
 func (q *Queries) AddWorkspaceMember(ctx context.Context, arg AddWorkspaceMemberParams) error {
@@ -34,8 +34,8 @@ LIMIT 1
 `
 
 type CheckDocumentInWorkspaceParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
 }
 
 // T-105 (validasi setter): dokumen harus milik workspace yang sama & belum dihapus.
@@ -52,8 +52,8 @@ WHERE id = $1 AND workspace_id = $2 LIMIT 1
 `
 
 type CheckFolderBelongsToWorkspaceParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
 }
 
 func (q *Queries) CheckFolderBelongsToWorkspace(ctx context.Context, arg CheckFolderBelongsToWorkspaceParams) (pgtype.UUID, error) {
@@ -69,8 +69,8 @@ WHERE workspace_id = $1 AND user_id = $2 LIMIT 1
 `
 
 type CheckWorkspaceMemberParams struct {
-	WorkspaceID pgtype.UUID
-	UserID      pgtype.UUID
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	UserID      pgtype.UUID `json:"user_id"`
 }
 
 func (q *Queries) CheckWorkspaceMember(ctx context.Context, arg CheckWorkspaceMemberParams) (pgtype.Text, error) {
@@ -88,13 +88,13 @@ RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slu
 `
 
 type CreateDocumentParams struct {
-	WorkspaceID pgtype.UUID
-	FolderID    pgtype.UUID
-	AuthorID    pgtype.UUID
-	Title       string
-	Content     pgtype.Text
-	IsPublic    bool
-	Slug        string
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	FolderID    pgtype.UUID `json:"folder_id"`
+	AuthorID    pgtype.UUID `json:"author_id"`
+	Title       string      `json:"title"`
+	Content     pgtype.Text `json:"content"`
+	IsPublic    bool        `json:"is_public"`
+	Slug        string      `json:"slug"`
 }
 
 // ==========================================
@@ -139,9 +139,9 @@ RETURNING id, workspace_id, name, parent_id, index_document_id, created_at, upda
 `
 
 type CreateFolderParams struct {
-	WorkspaceID pgtype.UUID
-	Name        string
-	ParentID    pgtype.UUID
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	Name        string      `json:"name"`
+	ParentID    pgtype.UUID `json:"parent_id"`
 }
 
 // ==========================================
@@ -169,10 +169,10 @@ RETURNING id, username, full_name, avatar_url, updated_at
 `
 
 type CreateProfileParams struct {
-	ID        pgtype.UUID
-	Username  string
-	FullName  string
-	AvatarUrl pgtype.Text
+	ID        pgtype.UUID `json:"id"`
+	Username  string      `json:"username"`
+	FullName  string      `json:"full_name"`
+	AvatarUrl pgtype.Text `json:"avatar_url"`
 }
 
 func (q *Queries) CreateProfile(ctx context.Context, arg CreateProfileParams) (Profile, error) {
@@ -200,8 +200,8 @@ RETURNING id, email, password_hash, created_at
 `
 
 type CreateUserParams struct {
-	Email        string
-	PasswordHash string
+	Email        string `json:"email"`
+	PasswordHash string `json:"password_hash"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -223,9 +223,9 @@ RETURNING id, name, slug, created_by, created_at
 `
 
 type CreateWorkspaceParams struct {
-	Name      string
-	Slug      string
-	CreatedBy pgtype.UUID
+	Name      string      `json:"name"`
+	Slug      string      `json:"slug"`
+	CreatedBy pgtype.UUID `json:"created_by"`
 }
 
 func (q *Queries) CreateWorkspace(ctx context.Context, arg CreateWorkspaceParams) (Workspace, error) {
@@ -247,8 +247,8 @@ WHERE id = $1 AND workspace_id = $2
 `
 
 type DeleteFolderParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
 }
 
 func (q *Queries) DeleteFolder(ctx context.Context, arg DeleteFolderParams) (int64, error) {
@@ -266,8 +266,8 @@ WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL AND locked_by IS NOT 
 `
 
 type ForceUnlockDocumentParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
 }
 
 // Lepas kunci paksa (oleh OWNER): set locked_by = NULL tanpa peduli siapa pengunci.
@@ -285,8 +285,8 @@ WHERE id = $1 AND workspace_id = $2 LIMIT 1
 `
 
 type GetDocumentParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
 }
 
 func (q *Queries) GetDocument(ctx context.Context, arg GetDocumentParams) (Document, error) {
@@ -319,8 +319,8 @@ LIMIT 1
 `
 
 type GetDocumentBySlugParams struct {
-	WorkspaceID pgtype.UUID
-	Slug        string
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	Slug        string      `json:"slug"`
 }
 
 // Cek apakah slug sudah dipakai di workspace (untuk disambiguator slug).
@@ -338,13 +338,13 @@ LIMIT 1
 `
 
 type GetDocumentLockParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
 }
 
 type GetDocumentLockRow struct {
-	ID       pgtype.UUID
-	LockedBy pgtype.UUID
+	ID       pgtype.UUID `json:"id"`
+	LockedBy pgtype.UUID `json:"locked_by"`
 }
 
 // Ambil status kunci dokumen.
@@ -373,23 +373,23 @@ LIMIT 1
 `
 
 type GetFolderWithIndexParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
 }
 
 type GetFolderWithIndexRow struct {
-	ID                pgtype.UUID
-	WorkspaceID       pgtype.UUID
-	ParentID          pgtype.UUID
-	Name              string
-	IndexDocumentID   pgtype.UUID
-	CreatedAt         pgtype.Timestamp
-	UpdatedAt         pgtype.Timestamp
-	IndexDocID        pgtype.UUID
-	IndexDocTitle     pgtype.Text
-	IndexDocSlug      pgtype.Text
-	IndexDocContent   pgtype.Text
-	IndexDocUpdatedAt pgtype.Timestamp
+	ID                pgtype.UUID      `json:"id"`
+	WorkspaceID       pgtype.UUID      `json:"workspace_id"`
+	ParentID          pgtype.UUID      `json:"parent_id"`
+	Name              string           `json:"name"`
+	IndexDocumentID   pgtype.UUID      `json:"index_document_id"`
+	CreatedAt         pgtype.Timestamp `json:"created_at"`
+	UpdatedAt         pgtype.Timestamp `json:"updated_at"`
+	IndexDocID        pgtype.UUID      `json:"index_doc_id"`
+	IndexDocTitle     pgtype.Text      `json:"index_doc_title"`
+	IndexDocSlug      pgtype.Text      `json:"index_doc_slug"`
+	IndexDocContent   pgtype.Text      `json:"index_doc_content"`
+	IndexDocUpdatedAt pgtype.Timestamp `json:"index_doc_updated_at"`
 }
 
 // T-105: folder satuan + dokumen indeksnya (README/wiki folder).
@@ -452,21 +452,21 @@ LIMIT 1
 `
 
 type GetPublicDocumentBySlugParams struct {
-	Slug   string
-	Slug_2 string
+	Slug   string `json:"slug"`
+	Slug_2 string `json:"slug_2"`
 }
 
 type GetPublicDocumentBySlugRow struct {
-	ID              pgtype.UUID
-	Title           string
-	Content         pgtype.Text
-	Slug            string
-	IsPublic        bool
-	CreatedAt       pgtype.Timestamp
-	UpdatedAt       pgtype.Timestamp
-	AuthorUsername  string
-	AuthorFullName  string
-	AuthorAvatarUrl pgtype.Text
+	ID              pgtype.UUID      `json:"id"`
+	Title           string           `json:"title"`
+	Content         pgtype.Text      `json:"content"`
+	Slug            string           `json:"slug"`
+	IsPublic        bool             `json:"is_public"`
+	CreatedAt       pgtype.Timestamp `json:"created_at"`
+	UpdatedAt       pgtype.Timestamp `json:"updated_at"`
+	AuthorUsername  string           `json:"author_username"`
+	AuthorFullName  string           `json:"author_full_name"`
+	AuthorAvatarUrl pgtype.Text      `json:"author_avatar_url"`
 }
 
 // ==========================================
@@ -539,17 +539,17 @@ LIMIT 10
 `
 
 type GetRelatedNotesParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
-	FolderID    pgtype.UUID
-	Similarity  string
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	FolderID    pgtype.UUID `json:"folder_id"`
+	Similarity  string      `json:"similarity"`
 }
 
 type GetRelatedNotesRow struct {
-	ID     pgtype.UUID
-	Title  string
-	Slug   string
-	Weight float64
+	ID     pgtype.UUID `json:"id"`
+	Title  string      `json:"title"`
+	Slug   string      `json:"slug"`
+	Weight float64     `json:"weight"`
 }
 
 // ==========================================
@@ -658,10 +658,10 @@ WHERE wm.user_id = $1
 `
 
 type GetUserWorkspacesRow struct {
-	ID   pgtype.UUID
-	Name string
-	Slug string
-	Role pgtype.Text
+	ID   pgtype.UUID `json:"id"`
+	Name string      `json:"name"`
+	Slug string      `json:"slug"`
+	Role pgtype.Text `json:"role"`
 }
 
 func (q *Queries) GetUserWorkspaces(ctx context.Context, userID pgtype.UUID) ([]GetUserWorkspacesRow, error) {
@@ -771,8 +771,8 @@ WHERE id = $1 AND workspace_id = $2
 `
 
 type HardDeleteDocumentParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
 }
 
 func (q *Queries) HardDeleteDocument(ctx context.Context, arg HardDeleteDocumentParams) (int64, error) {
@@ -791,9 +791,9 @@ WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL AND locked_by IS NULL
 `
 
 type LockDocumentParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
-	LockedBy    pgtype.UUID
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	LockedBy    pgtype.UUID `json:"locked_by"`
 }
 
 // ==========================================
@@ -816,8 +816,8 @@ WHERE id = $1 AND workspace_id = $2
 `
 
 type RestoreDocumentParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
 }
 
 // Ganti query Hapus, Restore, dan Update lu menjadi seperti ini:
@@ -850,20 +850,20 @@ LIMIT 50
 `
 
 type SearchDocumentsParams struct {
-	WorkspaceID pgtype.UUID
-	ToTsquery   string
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	ToTsquery   string      `json:"to_tsquery"`
 }
 
 type SearchDocumentsRow struct {
-	ID          pgtype.UUID
-	Title       string
-	Slug        string
-	FolderID    pgtype.UUID
-	IsPublic    bool
-	PublishedAt pgtype.Timestamptz
-	UpdatedAt   pgtype.Timestamp
-	Rank        float32
-	TitleSim    float32
+	ID          pgtype.UUID        `json:"id"`
+	Title       string             `json:"title"`
+	Slug        string             `json:"slug"`
+	FolderID    pgtype.UUID        `json:"folder_id"`
+	IsPublic    bool               `json:"is_public"`
+	PublishedAt pgtype.Timestamptz `json:"published_at"`
+	UpdatedAt   pgtype.Timestamp   `json:"updated_at"`
+	Rank        float32            `json:"rank"`
+	TitleSim    float32            `json:"title_sim"`
 }
 
 // ==========================================
@@ -910,9 +910,9 @@ WHERE id = $1 AND workspace_id = $2
 `
 
 type SetFolderIndexDocumentParams struct {
-	ID              pgtype.UUID
-	WorkspaceID     pgtype.UUID
-	IndexDocumentID pgtype.UUID
+	ID              pgtype.UUID `json:"id"`
+	WorkspaceID     pgtype.UUID `json:"workspace_id"`
+	IndexDocumentID pgtype.UUID `json:"index_document_id"`
 }
 
 // T-105: pasang/hapus dokumen indeks folder. $3 NULL (valid:false) = hapus index.
@@ -931,8 +931,8 @@ WHERE id = $1 AND workspace_id = $2
 `
 
 type SoftDeleteDocumentParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
 }
 
 func (q *Queries) SoftDeleteDocument(ctx context.Context, arg SoftDeleteDocumentParams) (int64, error) {
@@ -950,9 +950,9 @@ WHERE id = $1 AND workspace_id = $2 AND deleted_at IS NULL AND locked_by = $3
 `
 
 type UnlockDocumentParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
-	LockedBy    pgtype.UUID
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	LockedBy    pgtype.UUID `json:"locked_by"`
 }
 
 // Lepas kunci dokumen: set locked_by = NULL. Hanya berhasil jika dikunci oleh user yang sama.
@@ -978,13 +978,13 @@ RETURNING id, workspace_id, folder_id, author_id, title, content, is_public, slu
 `
 
 type UpdateDocumentParams struct {
-	ID          pgtype.UUID
-	WorkspaceID pgtype.UUID
-	Title       string
-	Content     pgtype.Text
-	FolderID    pgtype.UUID
-	IsPublic    bool
-	Version     int32
+	ID          pgtype.UUID `json:"id"`
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	Title       string      `json:"title"`
+	Content     pgtype.Text `json:"content"`
+	FolderID    pgtype.UUID `json:"folder_id"`
+	IsPublic    bool        `json:"is_public"`
+	Version     int32       `json:"version"`
 }
 
 // Optimistic locking (T-101): hanya update jika version cocok, lalu naikkan version.

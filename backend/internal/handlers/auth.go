@@ -7,10 +7,10 @@ import (
 	"os"
 	"strings"
 	"time"
-
 	"github.com/FajarrKurniawan9/smasara-backend/internal/database"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -56,6 +56,22 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Gagal mendaftarkan user. Email mungkin sudah dipakai."})
 	}
+
+	// Otomatis buat profil awal berdasar prefix email (memenuhi relasi FK profiles.id -> users.id)
+	defaultUsername := strings.Split(cleanEmail, "@")[0]
+	if len(defaultUsername) < 3 {
+		defaultUsername = defaultUsername + "user"
+	}
+	// Disambiguator username jika duplikat
+	defaultUsername = defaultUsername + "-" + user.ID.String()[:4]
+	defaultFullName := strings.Title(strings.Split(cleanEmail, "@")[0])
+
+	_, _ = h.DB.CreateProfile(context.Background(), database.CreateProfileParams{
+		ID:        user.ID,
+		Username:  defaultUsername,
+		FullName:  defaultFullName,
+		AvatarUrl: pgtype.Text{Valid: false},
+	})
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "User berhasil dibuat",

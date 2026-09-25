@@ -40,9 +40,20 @@ func InitDB() *pgxpool.Pool {
 		log.Fatalf("Error gagal membuat connection pool: %v", err)
 	}
 
-	// Ping Database
-	if err := pool.Ping(context.Background()); err != nil {
-		log.Fatalf("Error: Database tidak merespons (Ping gagal): %v", err)
+	// Ping Database dengan mekanisme Retry (Auto-healing)
+	// Mencoba koneksi selama maksimal 30 detik (15x percobaan) saat startup
+	var pingErr error
+	for i := 1; i <= 15; i++ {
+		pingErr = pool.Ping(context.Background())
+		if pingErr == nil {
+			break
+		}
+		log.Printf("Menunggu database siap... (Percobaan %d/15)\n", i)
+		time.Sleep(2 * time.Second)
+	}
+
+	if pingErr != nil {
+		log.Fatalf("Fatal: Database tidak merespons setelah 30 detik (Ping gagal): %v", pingErr)
 	}
 
 	fmt.Println("🚀 Smasara-DB: Koneksi ke PostgreSQL berhasil ditembus!")

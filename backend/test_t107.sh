@@ -45,7 +45,7 @@ curl -s -o /dev/null -b "$JAR2" -X POST "$BASE/api/profiles" \
 curl -s -b "$JAR" -X POST "$BASE/api/workspaces" \
   -H "Content-Type: application/json" \
   -d "{\"name\": \"WS T107\", \"slug\": \"ws-t107-$TS\"}" > /tmp/t107_ws.json
-WS_ID=$(python3 -c "import sys,json;print(json.load(sys.stdin)['workspace']['ID'])" < /tmp/t107_ws.json)
+WS_ID=$(python3 -c "import sys,json;d=json.load(sys.stdin)['workspace'];print(d.get('id') or d.get('ID'))" < /tmp/t107_ws.json)
 
 USER2_ID=$($PSQL -t -A -c "SELECT id FROM profiles WHERE username = 'editor_$TS';")
 curl -s -o /dev/null -b "$JAR" -X POST "$BASE/api/workspaces/$WS_ID/members" \
@@ -56,8 +56,8 @@ echo "=== B2. Buat dokumen ==="
 curl -s -b "$JAR" -X POST "$BASE/api/workspaces/$WS_ID/documents" \
   -H "Content-Type: application/json" \
   -d '{"title": "Dokumen T107", "content": "isi test"}' > /tmp/t107_doc.json
-DOC_ID=$(python3 -c "import sys,json;print(json.load(sys.stdin)['document']['ID'])" < /tmp/t107_doc.json)
-DOC_VER=$(python3 -c "import sys,json;print(json.load(sys.stdin)['document']['Version'])" < /tmp/t107_doc.json)
+DOC_ID=$(python3 -c "import sys,json;d=json.load(sys.stdin)['document'];print(d.get('id') or d.get('ID'))" < /tmp/t107_doc.json)
+DOC_VER=$(python3 -c "import sys,json;d=json.load(sys.stdin)['document'];print(d.get('version') if 'version' in d else d.get('Version'))" < /tmp/t107_doc.json)
 echo "document_id=$DOC_ID version=$DOC_VER"
 
 echo ""

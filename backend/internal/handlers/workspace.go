@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"strings"
+	"time"
 
 	"github.com/FajarrKurniawan9/smasara-backend/internal/database" // Sesuaikan dengan module lu
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -48,21 +50,42 @@ func (h *WorkspaceHandler) CreateWorkspace(c *fiber.Ctx) error {
 	if cleanName == "" || cleanSlug == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Nama Workspace dan Slug tidak boleh kosong"})
 	}
-
-	// 3. Proses Aksi 1: Bikin Workspace di DB
-	workspace, err := h.DB.CreateWorkspace(context.Background(), database.CreateWorkspaceParams{
-		Name:      cleanName,
-		Slug:      cleanSlug,
-		CreatedBy: userUUID,
-	})
-
+	// Pastikan profil user sudah ada (jika user lama terdaftar sebelum ada auto-profile)
+	_, err := h.DB.GetProfileByID(context.Background(), userUUID)
 	if err != nil {
-		// Biasanya error di sini karena 'Slug' yang dikirim sudah pernah dipakai orang lain (UNIQUE constraint)
-		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-			"error": "Gagal membuat workspace. Kemungkinan URL Slug sudah dipakai.",
+		fallbackUsername := "user-" + userUUID.String()[:8]
+		_, _ = h.DB.CreateProfile(context.Background(), database.CreateProfileParams{
+			ID:        userUUID,
+			Username:  fallbackUsername,
+			FullName:  "Pengguna Smasara",
+			AvatarUrl: pgtype.Text{Valid: false},
 		})
 	}
 
+	// 3. Proses Aksi 1: Bikin Workspace di DB (dengan penanganan slug unik)
+	targetSlug := cleanSlug
+	var workspace database.Workspace
+	var createErr error
+
+	for range 5 {
+		workspace, createErr = h.DB.CreateWorkspace(context.Background(), database.CreateWorkspaceParams{
+			Name:      cleanName,
+			Slug:      targetSlug,
+			CreatedBy: userUUID,
+		})
+		if createErr == nil {
+			break
+		}
+		// Jika gagal karena slug duplikat, tambahkan random suffix
+		targetSlug = fmt.Sprintf("%s-%d", cleanSlug, time.Now().UnixNano()%10000)
+	}
+
+	if createErr != nil {
+		log.Printf("Gagal CreateWorkspace: %v", createErr)
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error": "Gagal membuat workspace. Kemungkinan URL Slug sudah dipakai atau sistem sedang sibuk.",
+		})
+	}
 	// 4. Proses Aksi 2: Jadikan User sebagai OWNER di Workspace tersebut
 	err = h.DB.AddWorkspaceMember(context.Background(), database.AddWorkspaceMemberParams{
 		WorkspaceID: workspace.ID,

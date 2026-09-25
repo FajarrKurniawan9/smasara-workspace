@@ -32,7 +32,7 @@ curl -s -o /dev/null -b "$JAR" -X POST "$BASE/api/profiles" \
 curl -s -b "$JAR" -X POST "$BASE/api/workspaces" \
   -H "Content-Type: application/json" \
   -d "{\"name\": \"WS T108\", \"slug\": \"ws-t108-$TS\"}" > /tmp/t108_ws.json
-WS_ID=$(python3 -c "import sys,json;print(json.load(sys.stdin)['workspace']['ID'])" < /tmp/t108_ws.json)
+WS_ID=$(python3 -c "import sys,json;d=json.load(sys.stdin)['workspace'];print(d.get('id') or d.get('ID'))" < /tmp/t108_ws.json)
 
 curl -s -o /dev/null -b "$JAR" -X POST "$BASE/api/workspaces/$WS_ID/documents" \
   -H "Content-Type: application/json" \

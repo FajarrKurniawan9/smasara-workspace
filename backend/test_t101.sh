@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # End-to-end test untuk T-101: slug disambiguator + optimistic locking
 set -e
-BASE="http://localhost:8080"
+BASE="http://127.0.0.1:8080"
 TMPD="./.smtest"
 mkdir -p "$TMPD"
 JAR="$TMPD/cookies.txt"
@@ -26,7 +26,7 @@ echo "=== 4. CREATE WORKSPACE ==="
 curl -s -b "$JAR" -X POST "$BASE/api/workspaces" -H 'Content-Type: application/json' \
   -d "{\"name\":\"Workspace Test\",\"slug\":\"ws-$UNIQ\"}" > "$TMPD/ws.json"; cat "$TMPD/ws.json"; echo
 
-WS_ID=$(python3 -c "import json;print(json.load(open('$TMPD/ws.json'))['workspace']['ID'])")
+WS_ID=$(python3 -c "import json;d=json.load(open('$TMPD/ws.json'))['workspace'];print(d.get('id') or d.get('ID'))")
 echo "WORKSPACE_ID=$WS_ID"
 
 echo "=== 5. CREATE DOC 1 (judul 'Cara Belajar Golang') ==="
@@ -37,10 +37,10 @@ echo "=== 6. CREATE DOC 2 (judul SAMA) ==="
 curl -s -b "$JAR" -X POST "$BASE/api/workspaces/$WS_ID/documents" -H 'Content-Type: application/json' \
   -d '{"title":"Cara Belajar Golang","content":"isi kedua"}' > "$TMPD/doc2.json"; cat "$TMPD/doc2.json"; echo
 
-DOC1_ID=$(python3 -c "import json;print(json.load(open('$TMPD/doc1.json'))['document']['ID'])")
-DOC1_SLUG=$(python3 -c "import json;print(json.load(open('$TMPD/doc1.json'))['document']['Slug'])")
-DOC2_SLUG=$(python3 -c "import json;print(json.load(open('$TMPD/doc2.json'))['document']['Slug'])")
-DOC1_VER=$(python3 -c "import json;print(json.load(open('$TMPD/doc1.json'))['document']['Version'])")
+DOC1_ID=$(python3 -c "import json;d=json.load(open('$TMPD/doc1.json'))['document'];print(d.get('id') or d.get('ID'))")
+DOC1_SLUG=$(python3 -c "import json;d=json.load(open('$TMPD/doc1.json'))['document'];print(d.get('slug') or d.get('Slug'))")
+DOC2_SLUG=$(python3 -c "import json;d=json.load(open('$TMPD/doc2.json'))['document'];print(d.get('slug') or d.get('Slug'))")
+DOC1_VER=$(python3 -c "import json;d=json.load(open('$TMPD/doc1.json'))['document'];print(d.get('version') if 'version' in d else d.get('Version'))")
 echo "DOC1_ID=$DOC1_ID"
 echo "DOC1_SLUG=$DOC1_SLUG  DOC2_SLUG=$DOC2_SLUG  DOC1_VERSION=$DOC1_VER"
 

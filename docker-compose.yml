@@ -39,7 +39,8 @@ services:
       - "5173:5173"
     depends_on:
       - backend
-    # Fitur ini menghubungkan folder lokal Anda ke dalam container
+    environment:
+      - BACKEND_URL=http://backend:8080
     # sehingga Anda tidak perlu merestart docker saat mengedit file Svelte
     volumes:
       - ./frontend:/app

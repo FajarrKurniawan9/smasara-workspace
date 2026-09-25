@@ -1,24 +1,32 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
+	import { workspaceStore } from '$lib/stores/workspace.svelte';
 	import { fetchApi } from '$lib/api';
 	import { goto } from '$app/navigation';
+	import CreateWorkspaceModal from '$lib/components/workspace/CreateWorkspaceModal.svelte';
 
 	let { children } = $props();
 	let isLoggingOut = $state(false);
+	let isCreateWsModalOpen = $state(false);
+
+	onMount(async () => {
+		await workspaceStore.loadWorkspaces();
+	});
 
 	async function handleLogout() {
 		try {
 			isLoggingOut = true;
-			// Kalau belum ada endpoint logout di backend, panggil saja buat jaga-jaga
-			// atau cukup bersihkan auth state dan redireksi ke login.
-			// Tapi untuk HTTP-only cookie, backend harus menghapusnya.
-			// Asumsikan router auth.go backend punya /api/logout
 			await fetchApi('/api/logout', { method: 'POST' }).catch(() => {});
 		} finally {
 			auth.clearAuth();
 			goto('/login');
 			isLoggingOut = false;
 		}
+	}
+
+	async function handleCreateWorkspace(name: string) {
+		await workspaceStore.createWorkspace(name);
 	}
 </script>
 
@@ -27,39 +35,80 @@
 	<aside
 		class="w-64 flex-shrink-0 border-r border-gray-200 bg-white shadow-sm flex flex-col hidden md:flex"
 	>
+		<!-- Logo / Brand -->
 		<div
-			class="flex h-16 items-center border-b border-gray-200 px-6 font-bold text-gray-800 text-lg"
+			class="flex h-16 items-center justify-between border-b border-gray-200 px-6 font-bold text-gray-800 text-lg"
 		>
-			Smasara
+			<span class="flex items-center gap-2">
+				<span class="text-emerald-600">Smasara</span>
+			</span>
 		</div>
+
+		<!-- Workspace Selector & Management -->
+		<div class="border-b border-gray-100 p-3 bg-gray-50/50">
+			<div class="flex items-center justify-between mb-1.5 px-1">
+				<span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+					Workspace
+				</span>
+				<button
+					type="button"
+					onclick={() => (isCreateWsModalOpen = true)}
+					class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-0.5 hover:underline"
+					title="Buat Workspace Baru"
+				>
+					<span>+</span>
+					<span>Baru</span>
+				</button>
+			</div>
+
+			{#if workspaceStore.workspaces.length > 0}
+				<select
+					bind:value={workspaceStore.currentWorkspaceId}
+					class="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-800 shadow-2xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 truncate"
+				>
+					{#each workspaceStore.workspaces as ws (ws.id)}
+						<option value={ws.id}>
+							{ws.name}
+							{ws.role ? `(${ws.role})` : ''}
+						</option>
+					{/each}
+				</select>
+			{:else}
+				<button
+					type="button"
+					onclick={() => (isCreateWsModalOpen = true)}
+					class="w-full rounded-lg border border-dashed border-gray-300 p-2 text-center text-xs text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50/40 transition-colors"
+				>
+					+ Buat Workspace Pertama
+				</button>
+			{/if}
+		</div>
+
+		<!-- Folders / Navigasi Sidebar -->
 		<div class="flex-1 overflow-y-auto p-4">
 			<nav class="space-y-1">
-				<a
-					href="/"
-					class="block rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-900"
-				>
-					Workspace
-				</a>
-				<div class="pt-4 pb-2">
+				<div class="pt-2 pb-2">
 					<p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Folders</p>
-					<!-- Placeholder for Nested Folders -->
-					<div class="mt-2 space-y-1 pl-3">
+					<!-- Placeholder for Nested Folders (Fase 4: T-401) -->
+					<div class="mt-2 space-y-1 pl-1">
 						<button
-							class="w-full text-left block rounded-md px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+							class="w-full text-left flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
 						>
-							📁 Uncategorized
+							<span>Uncategorized</span>
 						</button>
 					</div>
 				</div>
 			</nav>
 		</div>
+
+		<!-- Logout Button -->
 		<div class="border-t border-gray-200 p-4">
 			<button
 				onclick={handleLogout}
 				disabled={isLoggingOut}
-				class="w-full rounded bg-red-50 text-red-600 px-4 py-2 text-sm text-center font-medium hover:bg-red-100 disabled:opacity-50"
+				class="w-full rounded-lg bg-red-50 text-red-600 px-4 py-2 text-xs text-center font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
 			>
-				{isLoggingOut ? '...' : 'Logout'}
+				{isLoggingOut ? 'Keluar...' : 'Logout'}
 			</button>
 		</div>
 	</aside>
@@ -68,25 +117,26 @@
 	<div class="flex flex-1 flex-col overflow-hidden">
 		<!-- Topbar -->
 		<header
-			class="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6 shadow-sm"
+			class="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6 shadow-xs"
 		>
 			<div class="flex items-center md:hidden">
-				<button class="text-gray-500 hover:text-gray-700 focus:outline-none">
-					<!-- Menu icon for mobile -->
-					<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M4 6h16M4 12h16M4 18h16"
-						/>
-					</svg>
-				</button>
-				<span class="ml-4 font-bold text-gray-800">Smasara</span>
+				<span class="font-bold text-gray-800 text-lg">Smasara</span>
 			</div>
 
-			<div class="hidden md:flex ml-auto items-center space-x-4">
-				<span class="text-sm text-gray-500">
+			<div class="hidden md:flex items-center gap-2 text-xs text-gray-500">
+				{#if workspaceStore.currentWorkspace}
+					<span class="font-medium text-gray-700">
+						{workspaceStore.currentWorkspace.name}
+					</span>
+					<span>•</span>
+					<span class="font-mono text-gray-400">
+						/{workspaceStore.currentWorkspace.slug}
+					</span>
+				{/if}
+			</div>
+
+			<div class="flex items-center space-x-4">
+				<span class="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
 					user: {auth.userId ? auth.userId.substring(0, 8) + '...' : 'Unknown'}
 				</span>
 			</div>
@@ -98,3 +148,10 @@
 		</main>
 	</div>
 </div>
+
+<!-- Modal Pembuatan Workspace Baru -->
+<CreateWorkspaceModal
+	isOpen={isCreateWsModalOpen}
+	onClose={() => (isCreateWsModalOpen = false)}
+	onCreate={handleCreateWorkspace}
+/>
