@@ -13,9 +13,10 @@
 	async function loadPublicProfile(user: string) {
 		if (!user) return;
 		isLoading = true;
-		errorMessage = null;
 		try {
 			const res = await fetchApi<PublicProfileResponse>(`/api/public/profiles/${user}`);
+			// Pastikan documents adalah array agar tidak error jika backend mengembalikan null
+			res.documents = res.documents || [];
 			profileData = res;
 		} catch (err: unknown) {
 			const e = err as { message?: string; status?: number };
