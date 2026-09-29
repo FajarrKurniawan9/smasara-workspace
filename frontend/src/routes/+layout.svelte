@@ -13,7 +13,15 @@
 		try {
 			// Cek sesi yang sudah ada saat halaman direload
 			const me = await fetchApi<{ user_id: string }>('/api/me');
-			auth.setAuth(me.user_id);
+			// Coba ambil profil untuk username (graceful fail jika profil belum dibuat)
+			let username: string | null = null;
+			try {
+				const profileData = await fetchApi<{ profile: { username: string } }>('/api/profiles/me');
+				username = profileData.profile.username;
+			} catch {
+				// Abaikan error jika user belum buat profil
+			}
+			auth.setAuth(me.user_id, username);
 
 			// Jika user membuka halaman auth (login/register) dalam posisi sudah login,
 			// lemparkan ke dashboard.
@@ -22,10 +30,12 @@
 				goto('/');
 			}
 		} catch {
-			// Gagal (belum login). Jika berada di dashboard, tendang ke login.
+			// Gagal (belum login). Jika berada di rute private (dashboard), tendang ke login.
+			// Rute publik (/@username atau rute publik lainnya) dibiarkan tetap bisa diakses tanpa login.
 			auth.clearAuth();
 			const path = $page.url.pathname;
-			if (path !== '/login' && path !== '/register') {
+			const isPublicRoute = path === '/login' || path === '/register' || path.startsWith('/@');
+			if (!isPublicRoute) {
 				goto('/login');
 			}
 		} finally {

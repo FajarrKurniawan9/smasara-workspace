@@ -132,10 +132,35 @@
 				{/if}
 			</div>
 
-			<div class="flex items-center space-x-4">
-				<span class="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
-					user: {auth.userId ? auth.userId.substring(0, 8) + '...' : 'Unknown'}
-				</span>
+			<div class="flex items-center space-x-3">
+				{#if auth.username}
+					<a
+						href="/@{auth.username}"
+						target="_blank"
+						class="text-xs font-medium text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
+						title="Lihat Profil Publik"
+					>
+						<svg
+							class="w-3.5 h-3.5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+							></path>
+						</svg>
+						<span>@{auth.username}</span>
+					</a>
+				{:else}
+					<span class="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
+						{auth.userId ? auth.userId.substring(0, 8) + '...' : 'Unknown'}
+					</span>
+				{/if}
 			</div>
 		</header>
 

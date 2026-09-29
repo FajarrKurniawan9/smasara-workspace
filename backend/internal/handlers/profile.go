@@ -85,3 +85,76 @@ func (h *ProfileHandler) CreateProfile(c *fiber.Ctx) error {
 		"profile": profile,
 	})
 }
+
+// GetMyProfile mengembalikan data profil milik pengguna yang sedang login
+func (h *ProfileHandler) GetMyProfile(c *fiber.Ctx) error {
+	userIDStr, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Identitas pengguna tidak ditemukan",
+		})
+	}
+
+	var userUUID pgtype.UUID
+	if err := userUUID.Scan(userIDStr); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Format ID pengguna tidak valid",
+		})
+	}
+
+	profile, err := h.DB.GetProfileByID(context.Background(), userUUID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Profil tidak ditemukan",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"profile": fiber.Map{
+			"id":         profile.ID,
+			"username":   profile.Username,
+			"full_name":  profile.FullName,
+			"avatar_url": profile.AvatarUrl.String,
+		},
+	})
+}
+
+// GetPublicProfile mengembalikan data profil publik beserta daftar dokumen publiknya.
+// Endpoint publik: tanpa JWT / login requirement.
+func (h *ProfileHandler) GetPublicProfile(c *fiber.Ctx) error {
+	username := strings.TrimSpace(c.Params("username"))
+	// Tangani format @username jika user/client mengirim dengan prefix @
+	username = strings.TrimPrefix(username, "@")
+
+	if username == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Username tidak boleh kosong",
+		})
+	}
+
+	ctx := context.Background()
+	profile, err := h.DB.GetProfileByUsername(ctx, username)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Profil pengguna tidak ditemukan",
+		})
+	}
+
+	docs, err := h.DB.GetPublicDocumentsByUsername(ctx, username)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal mengambil daftar dokumen publik",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"profile": fiber.Map{
+			"id":         profile.ID,
+			"username":   profile.Username,
+			"full_name":  profile.FullName,
+			"avatar_url": profile.AvatarUrl.String,
+			"created_at": profile.UpdatedAt,
+		},
+		"documents": docs,
+	})
+}

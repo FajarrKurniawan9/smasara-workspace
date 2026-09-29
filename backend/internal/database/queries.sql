@@ -16,6 +16,31 @@ RETURNING *;
 SELECT * FROM profiles
 WHERE id = $1 LIMIT 1;
 
+-- name: GetProfileByUsername :one
+SELECT id, username, full_name, avatar_url, updated_at
+FROM profiles
+WHERE username = $1 LIMIT 1;
+
+-- name: GetPublicDocumentsByUsername :many
+-- Feed dokumen publik untuk profil /@username.
+-- Tanpa JWT, read-only, deleted_at IS NULL, is_public = true.
+SELECT 
+    d.id, d.title, d.slug, d.content, d.is_public, d.published_at,
+    d.created_at, d.updated_at,
+    w.name AS workspace_name, w.slug AS workspace_slug,
+    f.name AS folder_name,
+    p.username AS author_username,
+    p.full_name AS author_full_name,
+    p.avatar_url AS author_avatar_url
+FROM documents d
+JOIN profiles p ON d.author_id = p.id
+JOIN workspaces w ON d.workspace_id = w.id
+LEFT JOIN folders f ON d.folder_id = f.id
+WHERE p.username = $1
+  AND d.is_public = true
+  AND d.deleted_at IS NULL
+ORDER BY d.published_at DESC NULLS LAST, d.updated_at DESC;
+
 -- name: CreateWorkspace :one
 INSERT INTO workspaces (id, name, slug, created_by, created_at)
 VALUES (gen_random_uuid(), $1, $2, $3, NOW())

@@ -64,6 +64,7 @@ func main() {
 	api.Post("/register", authLimiter, authHandler.Register)
 	api.Post("/login", authLimiter, authHandler.Login)
 	api.Post("/logout", authHandler.Logout)
+	api.Get("/public/profiles/:username", profileHandler.GetPublicProfile)
 
 	// --- ZONA VIP (Harus bawa JWT Valid) ---
 	// Semua rute di bawah "protected" ini akan melewati pemeriksaan Satpam JWT
@@ -75,6 +76,8 @@ func main() {
 
 	protected.Get("/workspaces", workspaceHandler.GetUserWorkspaces)
 
+	protected.Get("/profiles/me", profileHandler.GetMyProfile)
+	
 	// Contoh rute test untuk memastikan Satpam bekerja:
 	protected.Get("/me", func(c *fiber.Ctx) error {
 		// Mengambil user_id yang tadi dititipkan oleh middleware di c.Locals

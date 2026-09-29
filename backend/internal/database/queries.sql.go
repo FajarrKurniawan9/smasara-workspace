@@ -433,6 +433,25 @@ func (q *Queries) GetProfileByID(ctx context.Context, id pgtype.UUID) (Profile, 
 	return i, err
 }
 
+const getProfileByUsername = `-- name: GetProfileByUsername :one
+SELECT id, username, full_name, avatar_url, updated_at
+FROM profiles
+WHERE username = $1 LIMIT 1
+`
+
+func (q *Queries) GetProfileByUsername(ctx context.Context, username string) (Profile, error) {
+	row := q.db.QueryRow(ctx, getProfileByUsername, username)
+	var i Profile
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.FullName,
+		&i.AvatarUrl,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getPublicDocumentBySlug = `-- name: GetPublicDocumentBySlug :one
 
 SELECT 
@@ -491,6 +510,79 @@ func (q *Queries) GetPublicDocumentBySlug(ctx context.Context, arg GetPublicDocu
 		&i.AuthorAvatarUrl,
 	)
 	return i, err
+}
+
+const getPublicDocumentsByUsername = `-- name: GetPublicDocumentsByUsername :many
+SELECT 
+    d.id, d.title, d.slug, d.content, d.is_public, d.published_at,
+    d.created_at, d.updated_at,
+    w.name AS workspace_name, w.slug AS workspace_slug,
+    f.name AS folder_name,
+    p.username AS author_username,
+    p.full_name AS author_full_name,
+    p.avatar_url AS author_avatar_url
+FROM documents d
+JOIN profiles p ON d.author_id = p.id
+JOIN workspaces w ON d.workspace_id = w.id
+LEFT JOIN folders f ON d.folder_id = f.id
+WHERE p.username = $1
+  AND d.is_public = true
+  AND d.deleted_at IS NULL
+ORDER BY d.published_at DESC NULLS LAST, d.updated_at DESC
+`
+
+type GetPublicDocumentsByUsernameRow struct {
+	ID              pgtype.UUID        `json:"id"`
+	Title           string             `json:"title"`
+	Slug            string             `json:"slug"`
+	Content         pgtype.Text        `json:"content"`
+	IsPublic        bool               `json:"is_public"`
+	PublishedAt     pgtype.Timestamptz `json:"published_at"`
+	CreatedAt       pgtype.Timestamp   `json:"created_at"`
+	UpdatedAt       pgtype.Timestamp   `json:"updated_at"`
+	WorkspaceName   string             `json:"workspace_name"`
+	WorkspaceSlug   string             `json:"workspace_slug"`
+	FolderName      pgtype.Text        `json:"folder_name"`
+	AuthorUsername  string             `json:"author_username"`
+	AuthorFullName  string             `json:"author_full_name"`
+	AuthorAvatarUrl pgtype.Text        `json:"author_avatar_url"`
+}
+
+// Feed dokumen publik untuk profil /@username.
+// Tanpa JWT, read-only, deleted_at IS NULL, is_public = true.
+func (q *Queries) GetPublicDocumentsByUsername(ctx context.Context, username string) ([]GetPublicDocumentsByUsernameRow, error) {
+	rows, err := q.db.Query(ctx, getPublicDocumentsByUsername, username)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPublicDocumentsByUsernameRow
+	for rows.Next() {
+		var i GetPublicDocumentsByUsernameRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Slug,
+			&i.Content,
+			&i.IsPublic,
+			&i.PublishedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.WorkspaceName,
+			&i.WorkspaceSlug,
+			&i.FolderName,
+			&i.AuthorUsername,
+			&i.AuthorFullName,
+			&i.AuthorAvatarUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getRelatedNotes = `-- name: GetRelatedNotes :many
