@@ -26,6 +26,13 @@ Frontend (in `frontend/`):
 
 Order before considering work done: backend compiles + relevant `test_t*.sh` passes → frontend `npm run check && npm run lint`.
 
+
+## Protokol Pendelegasian (Verification SOP)
+
+Setiap task yang mengubah logika sistem atau UI **TIDAK BOLEH** diklaim "Done" secara sepihak oleh agent utama. Sebelum menyelesaikan task, **wajib** menggunakan tool `task` untuk mendelegasikan 2 lapis verifikasi:
+1. **Reviewer Sub-agent (`agent: "reviewer"`):** Bertugas mereview kode secara independen, mencari celah logika (null values, race conditions), atau edge-case state.
+2. **QA Sub-agent (`agent: "task"` untuk UI/Runtime Verification):** Bertugas mengeksekusi end-to-end secara interaktif menggunakan instance Chromium (`browser.open` via tool `eval`) untuk memastikan behavior UI bekerja di klien tanpa crash (seperti masalah reactivity).
+Hanya setelah kedua sub-agent selesai dan memberikan clearance, fitur baru boleh di-commit dan ditandai Done.
 ## Gotchas
 
 - Route order matters: `/documents/trash` is registered **before** `/documents/:document_id` or Fiber treats `trash` as an ID. Keep this ordering when adding static subroutes.
