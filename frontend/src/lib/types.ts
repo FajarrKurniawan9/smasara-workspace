@@ -26,6 +26,9 @@ export interface WorkspaceItem {
 	updated_at?: string;
 }
 
+export interface FolderTreeNode extends FolderItem {
+	children: FolderTreeNode[];
+}
 export interface FolderItem {
 	id: string;
 	workspace_id: string;
@@ -34,4 +37,17 @@ export interface FolderItem {
 	index_document_id: string | null;
 	created_at: string;
 	updated_at: string;
+}
+
+export interface FolderIndexDoc {
+	id: string;
+	title: string;
+	slug: string;
+	content: string | null;
+	updated_at: string;
+}
+
+export interface FolderDetail {
+	folder: FolderItem;
+	index_document: FolderIndexDoc | null;
 }

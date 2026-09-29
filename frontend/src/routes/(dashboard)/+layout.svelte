@@ -2,9 +2,11 @@
 	import { onMount } from 'svelte';
 	import { auth } from '$lib/stores/auth.svelte';
 	import { workspaceStore } from '$lib/stores/workspace.svelte';
+	import { folderStore } from '$lib/stores/folder.svelte';
 	import { fetchApi } from '$lib/api';
 	import { goto } from '$app/navigation';
 	import CreateWorkspaceModal from '$lib/components/workspace/CreateWorkspaceModal.svelte';
+	import { FolderTree } from '$lib/components/folder';
 
 	let { children } = $props();
 	let isLoggingOut = $state(false);
@@ -12,6 +14,13 @@
 
 	onMount(async () => {
 		await workspaceStore.loadWorkspaces();
+	});
+
+	$effect(() => {
+		const wsId = workspaceStore.currentWorkspaceId;
+		if (wsId) {
+			folderStore.loadFolders(wsId);
+		}
 	});
 
 	async function handleLogout() {
@@ -84,21 +93,9 @@
 			{/if}
 		</div>
 
-		<!-- Folders / Navigasi Sidebar -->
-		<div class="flex-1 overflow-y-auto p-4">
-			<nav class="space-y-1">
-				<div class="pt-2 pb-2">
-					<p class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Folders</p>
-					<!-- Placeholder for Nested Folders (Fase 4: T-401) -->
-					<div class="mt-2 space-y-1 pl-1">
-						<button
-							class="w-full text-left flex items-center gap-2 rounded-md px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-						>
-							<span>Uncategorized</span>
-						</button>
-					</div>
-				</div>
-			</nav>
+		<!-- Folders / Navigasi Sidebar (T-401) -->
+		<div class="flex-1 overflow-y-auto px-3 py-2">
+			<FolderTree />
 		</div>
 
 		<!-- Logout Button -->

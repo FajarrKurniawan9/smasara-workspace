@@ -10,6 +10,9 @@ const backendTarget =
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
 	server: {
+		watch: {
+			usePolling: true
+		},
 		proxy: {
 			'/api': {
 				target: backendTarget,
