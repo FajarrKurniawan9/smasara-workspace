@@ -486,9 +486,7 @@
 						{#if currentDoc.is_public && auth.username}
 							<a
 								href="/@{auth.username}"
-								target="_blank"
-								rel="noopener noreferrer"
-								title="Buka profil dan catatan publik di tab baru"
+								title="Buka profil dan catatan publik"
 								class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-emerald-700 shadow-2xs transition-colors"
 							>
 								<svg

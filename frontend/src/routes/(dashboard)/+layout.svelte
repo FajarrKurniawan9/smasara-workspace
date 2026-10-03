@@ -136,7 +136,6 @@
 				{#if auth.username}
 					<a
 						href="/@{auth.username}"
-						target="_blank"
 						class="text-xs font-medium text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
 						title="Lihat Profil Publik"
 					>

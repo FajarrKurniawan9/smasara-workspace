@@ -22,7 +22,14 @@
 
 			// Verify if JWT is successfully stored by hitting /api/me
 			const me = await fetchApi<{ user_id: string }>('/api/me');
-			auth.setAuth(me.user_id);
+			let username: string | null = null;
+			try {
+				const profileData = await fetchApi<{ profile: { username: string } }>('/api/profiles/me');
+				username = profileData.profile.username;
+			} catch {
+				// Abaikan jika belum ada profil
+			}
+			auth.setAuth(me.user_id, username);
 			goto('/');
 		} catch (err: any) {
 			errorMsg = err.message || 'Login gagal';
