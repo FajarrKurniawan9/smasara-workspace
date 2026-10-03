@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { fetchApi, ApiError } from '$lib/api';
+	import { auth } from '$lib/stores/auth.svelte';
 	import { workspaceStore } from '$lib/stores/workspace.svelte';
 	import { folderStore } from '$lib/stores/folder.svelte';
 	import type { DocumentItem } from '$lib/types';
+	import { getDocumentStatus } from '$lib/types';
 	import MarkdownEditor from '$lib/components/editor/MarkdownEditor.svelte';
 	import ConflictModal from '$lib/components/editor/ConflictModal.svelte';
 	import { FolderIndexView } from '$lib/components/folder';
-
+	import { DocumentStatusBadge } from '$lib/components/document';
 	let documents: DocumentItem[] = $state([]);
 	let selectedDocId = $state<string | null>(null);
 
@@ -28,6 +30,16 @@
 	let saveStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 	let statusMessage = $state('');
 
+	let currentDocStatus = $derived.by(() => {
+		const doc = currentDoc;
+		if (!doc) return 'private';
+		const isIndex = folderStore.folders.some((f) => f.index_document_id === doc.id);
+		return getDocumentStatus(doc, {
+			memberCount: workspaceStore.memberCount,
+			isIndexDocument: isIndex
+		});
+	});
+
 	// Konflik Optimistic Locking (HTTP 409)
 	let isConflictOpen = $state(false);
 	let serverDocContent = $state('');
@@ -38,11 +50,12 @@
 	// Debounce auto-save
 	let autoSaveTimer: ReturnType<typeof setTimeout> | undefined;
 
-	// Ketika workspace yang dipilih berubah di layout/store, reload dokumennya
+	// Ketika workspace yang dipilih berubah di layout/store, reload dokumennya & anggotanya
 	$effect(() => {
 		const wsId = workspaceStore.currentWorkspaceId;
 		if (wsId) {
 			loadDocuments(wsId);
+			workspaceStore.loadMembers(wsId);
 		} else {
 			documents = [];
 			currentDoc = null;
@@ -186,6 +199,7 @@
 					body: JSON.stringify({
 						title: editorTitle,
 						content: editorContent,
+						folder_id: currentDoc.folder_id || undefined,
 						is_public: isPublic,
 						version: versionToSend
 					})
@@ -249,6 +263,55 @@
 		// Paksa timpa server dengan versi yang paling baru
 		isConflictOpen = false;
 		await saveDocument(serverDocVersion);
+	}
+
+	async function togglePublish(newPublicState: boolean) {
+		const wsId = workspaceStore.currentWorkspaceId;
+		if (!currentDoc || !wsId || isSaving) return;
+
+		if (autoSaveTimer) clearTimeout(autoSaveTimer);
+
+		isSaving = true;
+		saveStatus = 'saving';
+		statusMessage = newPublicState ? 'Mempublikasikan catatan...' : 'Menarik publikasi catatan...';
+
+		try {
+			const res = await fetchApi<{ message: string; document: DocumentItem }>(
+				`/api/workspaces/${wsId}/documents/${currentDoc.id}`,
+				{
+					method: 'PUT',
+					body: JSON.stringify({
+						title: editorTitle,
+						content: editorContent,
+						folder_id: currentDoc.folder_id || undefined,
+						is_public: newPublicState,
+						version: currentDoc.version
+					})
+				}
+			);
+
+			const updatedDoc = res.document;
+			currentDoc = updatedDoc;
+			isPublic = updatedDoc.is_public;
+			saveStatus = 'saved';
+			statusMessage = newPublicState
+				? 'Catatan berhasil dipublikasikan!'
+				: 'Publikasi ditarik. Catatan kembali menjadi draf/privat.';
+
+			documents = documents.map((d) => (d.id === updatedDoc.id ? updatedDoc : d));
+		} catch (err: unknown) {
+			if (err instanceof ApiError && err.status === 409) {
+				saveStatus = 'error';
+				statusMessage = 'Konflik versi terdeteksi!';
+				await handleConflict();
+				return;
+			}
+			saveStatus = 'error';
+			statusMessage = err instanceof Error ? err.message : 'Gagal mengubah status publikasi';
+			console.error('Gagal toggle publish:', err);
+		} finally {
+			isSaving = false;
+		}
 	}
 
 	function navigateToWikilink(slug: string) {
@@ -335,15 +398,17 @@
 							}}
 							class="w-full text-left p-2.5 flex flex-col gap-0.5 cursor-pointer"
 						>
-							<div class="flex items-center justify-between">
+							<div class="flex items-center justify-between gap-1.5">
 								<span class="text-sm font-semibold truncate">{doc.title}</span>
-								{#if doc.is_public}
-									<span
-										class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-medium"
-									>
-										Publik
-									</span>
-								{/if}
+								<DocumentStatusBadge
+									status={getDocumentStatus(doc, {
+										memberCount: workspaceStore.memberCount,
+										isIndexDocument: folderStore.folders.some((f) => f.index_document_id === doc.id)
+									})}
+									collaboratorCount={workspaceStore.memberCount}
+									size="xs"
+									showIcon={false}
+								/>
 							</div>
 							<div class="flex items-center justify-between text-xs text-gray-400 font-mono">
 								<span>[[{doc.slug}]]</span>
@@ -391,42 +456,115 @@
 						/>
 					</div>
 
-					<div class="flex items-center gap-4">
+					<div class="flex items-center gap-3">
 						<!-- Save Indicator -->
 						<div class="text-xs flex items-center gap-1.5">
 							{#if saveStatus === 'saving'}
 								<span class="inline-block h-2 w-2 rounded-full bg-amber-500 animate-ping"></span>
-								<span class="text-amber-700">Menyimpan...</span>
+								<span class="text-amber-700 text-xs">Menyimpan...</span>
 							{:else if saveStatus === 'saved'}
 								<span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
-								<span class="text-emerald-700">{statusMessage || 'Tersimpan'}</span>
+								<span class="text-emerald-700 text-xs">{statusMessage || 'Tersimpan'}</span>
 							{:else if saveStatus === 'error'}
 								<span class="inline-block h-2 w-2 rounded-full bg-red-500"></span>
-								<span class="text-red-700">{statusMessage}</span>
+								<span class="text-red-700 text-xs">{statusMessage}</span>
 							{:else}
 								<span class="text-gray-400 font-mono text-[11px]">v{currentDoc.version}</span>
 							{/if}
 						</div>
 
-						<!-- Public Toggle -->
-						<label class="flex items-center gap-1.5 cursor-pointer text-xs text-gray-600">
-							<input
-								type="checkbox"
-								bind:checked={isPublic}
-								onchange={() => saveDocument()}
-								class="rounded text-emerald-600 focus:ring-emerald-500"
-							/>
-							<span>Publik</span>
-						</label>
+						<div class="h-4 w-px bg-gray-200"></div>
+
+						<!-- Pipeline Status Badge -->
+						<DocumentStatusBadge
+							status={currentDocStatus}
+							collaboratorCount={workspaceStore.memberCount}
+							size="sm"
+						/>
+
+						<!-- Public Link (if Live and username available) -->
+						{#if currentDoc.is_public && auth.username}
+							<a
+								href="/@{auth.username}"
+								target="_blank"
+								rel="noopener noreferrer"
+								title="Buka profil dan catatan publik di tab baru"
+								class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-emerald-700 shadow-2xs transition-colors"
+							>
+								<svg
+									class="h-3.5 w-3.5 text-gray-500"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									stroke-width="2"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+									/>
+								</svg>
+								<span>Lihat Publik</span>
+							</a>
+						{/if}
+
+						<!-- Dedicated Publish / Unpublish Action Button -->
+						{#if currentDoc.is_public}
+							<button
+								type="button"
+								onclick={() => togglePublish(false)}
+								disabled={isSaving}
+								title="Kembalikan status catatan menjadi draf privat"
+								class="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100 hover:border-amber-300 transition-all shadow-2xs active:scale-95 cursor-pointer disabled:opacity-50"
+							>
+								<svg
+									class="h-3.5 w-3.5 text-amber-600"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									stroke-width="2"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"
+									/>
+								</svg>
+								<span>Tarik Publikasi</span>
+							</button>
+						{:else}
+							<button
+								type="button"
+								onclick={() => togglePublish(true)}
+								disabled={isSaving}
+								title="Publikasikan catatan ini ke profil publik"
+								class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-all shadow-xs active:scale-95 cursor-pointer disabled:opacity-50"
+							>
+								<svg
+									class="h-3.5 w-3.5"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									stroke-width="2"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"
+									/>
+								</svg>
+								<span>Publikasikan</span>
+							</button>
+						{/if}
 
 						<!-- Manual Save Button -->
 						<button
 							type="button"
 							onclick={() => saveDocument()}
 							disabled={isSaving}
-							class="rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors disabled:opacity-50 shadow-xs cursor-pointer"
+							class="rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 shadow-2xs cursor-pointer"
 						>
-							{isSaving ? 'Menyimpan...' : 'Simpan (Ctrl+S)'}
+							{isSaving ? 'Menyimpan...' : 'Simpan'}
 						</button>
 					</div>
 				</div>

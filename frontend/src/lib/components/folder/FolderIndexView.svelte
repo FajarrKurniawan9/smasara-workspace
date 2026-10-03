@@ -2,7 +2,8 @@
 	import { folderStore } from '$lib/stores/folder.svelte';
 	import { workspaceStore } from '$lib/stores/workspace.svelte';
 	import type { DocumentItem } from '$lib/types';
-
+	import { getDocumentStatus } from '$lib/types';
+	import { DocumentStatusBadge } from '$lib/components/document';
 	let {
 		documents = [],
 		onSelectDocument,
@@ -243,13 +244,24 @@
 								>
 									{doc.title}
 								</h3>
-								{#if doc.id === indexDoc?.id}
-									<span
-										class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold shrink-0"
-									>
-										INDEX
-									</span>
-								{/if}
+								<div class="flex items-center gap-1.5 shrink-0">
+									{#if doc.id === indexDoc?.id}
+										<span
+											class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold"
+										>
+											INDEX
+										</span>
+									{/if}
+									<DocumentStatusBadge
+										status={getDocumentStatus(doc, {
+											memberCount: workspaceStore.memberCount,
+											isIndexDocument: doc.id === indexDoc?.id
+										})}
+										collaboratorCount={workspaceStore.memberCount}
+										size="xs"
+										showIcon={false}
+									/>
+								</div>
 							</div>
 							<p class="text-xs text-gray-400 font-mono">[[{doc.slug}]]</p>
 						</div>

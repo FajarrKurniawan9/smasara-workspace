@@ -190,6 +190,32 @@ func (h *WorkspaceHandler) AddWorkspaceMember(c *fiber.Ctx) error {
 	})
 }
 
+// GetWorkspaceMembers mengambil daftar seluruh anggota workspace beserta profilnya.
+func (h *WorkspaceHandler) GetWorkspaceMembers(c *fiber.Ctx) error {
+	workspaceIDStr := c.Params("workspace_id")
+	workspaceUUID, err := parseWorkspaceUUID(workspaceIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Format workspace_id tidak valid"})
+	}
+
+	members, err := h.DB.GetWorkspaceMembers(c.Context(), workspaceUUID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal mengambil daftar anggota workspace",
+		})
+	}
+
+	if members == nil {
+		members = []database.GetWorkspaceMembersRow{}
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Berhasil memuat daftar anggota workspace",
+		"members": members,
+		"count":   len(members),
+	})
+}
+
 // parseWorkspaceUUID helper untuk parse workspace_id
 func parseWorkspaceUUID(id string) (pgtype.UUID, error) {
 	var uuid pgtype.UUID

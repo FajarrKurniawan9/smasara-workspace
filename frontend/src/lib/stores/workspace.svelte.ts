@@ -1,13 +1,22 @@
 import { fetchApi } from '$lib/api';
-import type { WorkspaceItem } from '$lib/types';
+import type { WorkspaceItem, WorkspaceMemberItem } from '$lib/types';
 
 class WorkspaceStore {
 	workspaces = $state<WorkspaceItem[]>([]);
 	currentWorkspaceId = $state<string>('');
 	isLoading = $state(false);
+	members = $state<WorkspaceMemberItem[]>([]);
+	isLoadingMembers = $state(false);
 
 	currentWorkspace = $derived.by(() => {
 		return this.workspaces.find((w) => w.id === this.currentWorkspaceId) || null;
+	});
+
+	memberCount = $derived.by(() => {
+		const currentId = this.currentWorkspaceId;
+		const matchingMembers = this.members.filter((m) => m.workspace_id === currentId);
+		if (matchingMembers.length > 0) return matchingMembers.length;
+		return this.currentWorkspace?.member_count ?? 1;
 	});
 
 	async loadWorkspaces() {
@@ -28,6 +37,22 @@ class WorkspaceStore {
 			console.error('Gagal mengambil daftar workspace:', err);
 		} finally {
 			this.isLoading = false;
+		}
+	}
+
+	async loadMembers(workspaceId?: string) {
+		const targetId = workspaceId || this.currentWorkspaceId;
+		if (!targetId) return;
+		try {
+			this.isLoadingMembers = true;
+			const res = await fetchApi<{ members: WorkspaceMemberItem[] }>(
+				`/api/workspaces/${targetId}/members`
+			);
+			if (this.currentWorkspaceId === targetId) {
+				this.members = res.members || [];
+			}
+		} catch {
+			this.isLoadingMembers = false;
 		}
 	}
 

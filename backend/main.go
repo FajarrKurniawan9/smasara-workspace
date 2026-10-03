@@ -96,6 +96,7 @@ func main() {
 
 	// -- Rute Anggota Workspace (T-106) --
 	workspaceGroup.Post("/members", middleware.RequireWriteAccess(), workspaceHandler.AddWorkspaceMember)
+	workspaceGroup.Get("/members", workspaceHandler.GetWorkspaceMembers)
 
 	// -- Rute Folder --
 	workspaceGroup.Post("/folders", middleware.RequireWriteAccess(), folderHandler.CreateFolder)

@@ -14,14 +14,48 @@ export interface DocumentItem {
 	published_at: string | null;
 	deleted_at: string | null;
 }
+export type DocumentPipelineStatus = 'private' | 'shared' | 'live';
+
+export function getDocumentStatus(
+	doc: DocumentItem | null | undefined,
+	options?: {
+		memberCount?: number;
+		isIndexDocument?: boolean;
+	}
+): DocumentPipelineStatus {
+	if (!doc) {
+		return 'private';
+	}
+	if (doc.is_public) {
+		return 'live';
+	}
+	if (
+		(options?.memberCount !== undefined && options.memberCount > 1) ||
+		options?.isIndexDocument ||
+		Boolean(doc.locked_by)
+	) {
+		return 'shared';
+	}
+	return 'private';
+}
 
 export type WorkspaceRole = 'OWNER' | 'EDITOR' | 'VIEWER';
+
+export interface WorkspaceMemberItem {
+	workspace_id: string;
+	user_id: string;
+	role: WorkspaceRole;
+	username: string;
+	full_name: string;
+	avatar_url?: string;
+}
 
 export interface WorkspaceItem {
 	id: string;
 	name: string;
 	slug: string;
 	role?: WorkspaceRole;
+	member_count?: number;
 	created_at?: string;
 	updated_at?: string;
 }

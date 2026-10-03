@@ -80,6 +80,18 @@ func (q *Queries) CheckWorkspaceMember(ctx context.Context, arg CheckWorkspaceMe
 	return role, err
 }
 
+const countWorkspaceMembers = `-- name: CountWorkspaceMembers :one
+SELECT COUNT(*)::bigint FROM workspace_members
+WHERE workspace_id = $1
+`
+
+func (q *Queries) CountWorkspaceMembers(ctx context.Context, workspaceID pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countWorkspaceMembers, workspaceID)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createDocument = `-- name: CreateDocument :one
 
 INSERT INTO documents (workspace_id, folder_id, author_id, title, content, is_public, slug)
@@ -743,17 +755,19 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserWorkspaces = `-- name: GetUserWorkspaces :many
-SELECT w.id, w.name, w.slug, wm.role 
+SELECT w.id, w.name, w.slug, wm.role,
+       (SELECT COUNT(*)::bigint FROM workspace_members WHERE workspace_id = w.id) AS member_count
 FROM workspaces w
 JOIN workspace_members wm ON w.id = wm.workspace_id
 WHERE wm.user_id = $1
 `
 
 type GetUserWorkspacesRow struct {
-	ID   pgtype.UUID `json:"id"`
-	Name string      `json:"name"`
-	Slug string      `json:"slug"`
-	Role pgtype.Text `json:"role"`
+	ID          pgtype.UUID `json:"id"`
+	Name        string      `json:"name"`
+	Slug        string      `json:"slug"`
+	Role        pgtype.Text `json:"role"`
+	MemberCount int64       `json:"member_count"`
 }
 
 func (q *Queries) GetUserWorkspaces(ctx context.Context, userID pgtype.UUID) ([]GetUserWorkspacesRow, error) {
@@ -770,6 +784,7 @@ func (q *Queries) GetUserWorkspaces(ctx context.Context, userID pgtype.UUID) ([]
 			&i.Name,
 			&i.Slug,
 			&i.Role,
+			&i.MemberCount,
 		); err != nil {
 			return nil, err
 		}
@@ -846,6 +861,50 @@ func (q *Queries) GetWorkspaceFolders(ctx context.Context, workspaceID pgtype.UU
 			&i.IndexDocumentID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getWorkspaceMembers = `-- name: GetWorkspaceMembers :many
+SELECT wm.workspace_id, wm.user_id, wm.role, p.username, p.full_name, p.avatar_url
+FROM workspace_members wm
+JOIN profiles p ON wm.user_id = p.id
+WHERE wm.workspace_id = $1
+ORDER BY wm.role ASC, p.username ASC
+`
+
+type GetWorkspaceMembersRow struct {
+	WorkspaceID pgtype.UUID `json:"workspace_id"`
+	UserID      pgtype.UUID `json:"user_id"`
+	Role        pgtype.Text `json:"role"`
+	Username    string      `json:"username"`
+	FullName    string      `json:"full_name"`
+	AvatarUrl   pgtype.Text `json:"avatar_url"`
+}
+
+func (q *Queries) GetWorkspaceMembers(ctx context.Context, workspaceID pgtype.UUID) ([]GetWorkspaceMembersRow, error) {
+	rows, err := q.db.Query(ctx, getWorkspaceMembers, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetWorkspaceMembersRow
+	for rows.Next() {
+		var i GetWorkspaceMembersRow
+		if err := rows.Scan(
+			&i.WorkspaceID,
+			&i.UserID,
+			&i.Role,
+			&i.Username,
+			&i.FullName,
+			&i.AvatarUrl,
 		); err != nil {
 			return nil, err
 		}

@@ -22,16 +22,16 @@ Backend (in `backend/`):
 
 Frontend (in `frontend/`):
 - `npm run dev` | `npm run check` (svelte-check typecheck) | `npm run lint` (prettier + eslint) | `npm run format`.
-- No frontend tests exist.
+- `npx playwright test` — strict UI E2E verification.
 
-Order before considering work done: backend compiles + relevant `test_t*.sh` passes → frontend `npm run check && npm run lint`.
+Order before considering work done: backend compiles + relevant `test_t*.sh` passes → frontend `npm run check && npm run lint && npx playwright test`.
 
 
 ## Protokol Pendelegasian (Verification SOP)
 
 Setiap task yang mengubah logika sistem atau UI **TIDAK BOLEH** diklaim "Done" secara sepihak oleh agent utama. Sebelum menyelesaikan task, **wajib** menggunakan tool `task` untuk mendelegasikan 2 lapis verifikasi:
 1. **Reviewer Sub-agent (`agent: "reviewer"`):** Bertugas mereview kode secara independen, mencari celah logika (null values, race conditions), atau edge-case state.
-2. **QA Sub-agent (`agent: "task"` untuk UI/Runtime Verification):** Bertugas mengeksekusi end-to-end secara interaktif menggunakan instance Chromium (`browser.open` via tool `eval`) untuk memastikan behavior UI bekerja di klien tanpa crash (seperti masalah reactivity).
+2. **QA Sub-agent (`agent: "task"` untuk UI/Runtime Verification):** Bertugas menulis atau memperbarui skenario pengujian di `frontend/tests/` dan mengeksekusinya via `npx playwright test` (atau UI mode). **DILARANG KERAS** meloloskan implementasi UI jika script Playwright untuk interaksi terkait belum ada atau statusnya gagal. Pengujian interaksi harus terautomasi secara nyata, bukan sekadar asumsi "semestinya jalan".
 Hanya setelah kedua sub-agent selesai dan memberikan clearance, fitur baru boleh di-commit dan ditandai Done.
 ## Gotchas
 

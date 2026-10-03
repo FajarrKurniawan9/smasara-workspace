@@ -47,7 +47,8 @@ VALUES (gen_random_uuid(), $1, $2, $3, NOW())
 RETURNING *;
 
 -- name: GetUserWorkspaces :many
-SELECT w.id, w.name, w.slug, wm.role 
+SELECT w.id, w.name, w.slug, wm.role,
+       (SELECT COUNT(*)::bigint FROM workspace_members WHERE workspace_id = w.id) AS member_count
 FROM workspaces w
 JOIN workspace_members wm ON w.id = wm.workspace_id
 WHERE wm.user_id = $1;
@@ -60,6 +61,16 @@ VALUES ($1, $2, $3);
 SELECT role FROM workspace_members
 WHERE workspace_id = $1 AND user_id = $2 LIMIT 1;
 
+-- name: GetWorkspaceMembers :many
+SELECT wm.workspace_id, wm.user_id, wm.role, p.username, p.full_name, p.avatar_url
+FROM workspace_members wm
+JOIN profiles p ON wm.user_id = p.id
+WHERE wm.workspace_id = $1
+ORDER BY wm.role ASC, p.username ASC;
+
+-- name: CountWorkspaceMembers :one
+SELECT COUNT(*)::bigint FROM workspace_members
+WHERE workspace_id = $1;
 -- ==========================================
 -- DOMAIN KATEGORI / FOLDERS
 -- ==========================================
