@@ -5,6 +5,7 @@
 	import { fetchApi } from '$lib/api';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { ToastContainer } from '$lib/components/common';
 
 	let { children } = $props();
 	let isInitializing = $state(true);
@@ -50,4 +51,6 @@
 	</div>
 {:else}
 	{@render children()}
+
+	<ToastContainer />
 {/if}

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { fetchApi } from '$lib/api';
 	import { auth } from '$lib/stores/auth.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import { goto } from '$app/navigation';
-
 	let email = $state('');
 	let password = $state('');
 	let errorMsg = $state('');
@@ -31,8 +31,10 @@
 			}
 			auth.setAuth(me.user_id, username);
 			goto('/');
-		} catch (err: any) {
-			errorMsg = err.message || 'Login gagal';
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : 'Login gagal';
+			errorMsg = msg;
+			toast.error(msg);
 		} finally {
 			isLoading = false;
 		}

@@ -3,6 +3,7 @@
 	import { auth } from '$lib/stores/auth.svelte';
 	import { workspaceStore } from '$lib/stores/workspace.svelte';
 	import { folderStore } from '$lib/stores/folder.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import type { DocumentItem } from '$lib/types';
 	import { getDocumentStatus } from '$lib/types';
 	import MarkdownEditor from '$lib/components/editor/MarkdownEditor.svelte';
@@ -12,6 +13,7 @@
 	import type { RelatedNoteItem } from '$lib/types';
 	let documents: DocumentItem[] = $state([]);
 	let selectedDocId = $state<string | null>(null);
+	let isLoadingDocuments = $state(false);
 
 	let filteredDocuments = $derived.by(() => {
 		if (folderStore.filterMode === 'uncategorized') {
@@ -135,6 +137,7 @@
 	});
 
 	async function loadDocuments(workspaceId: string) {
+		isLoadingDocuments = true;
 		try {
 			const res = await fetchApi<{ documents: DocumentItem[] }>(
 				`/api/workspaces/${workspaceId}/documents`
@@ -148,8 +151,12 @@
 				currentDoc = null;
 				selectedDocId = null;
 			}
-		} catch (err) {
+		} catch (err: unknown) {
 			console.error('Gagal mengambil daftar dokumen:', err);
+			const msg = err instanceof Error ? err.message : 'Gagal mengambil daftar dokumen';
+			toast.error(msg);
+		} finally {
+			isLoadingDocuments = false;
 		}
 	}
 
@@ -232,7 +239,7 @@
 				const newWs = await workspaceStore.createWorkspace('My Workspace');
 				wsId = newWs.id;
 			} catch {
-				alert('Silakan buat workspace terlebih dahulu lewat menu di sidebar kiri.');
+				toast.warning('Silakan buat workspace terlebih dahulu lewat menu di sidebar kiri.');
 				return;
 			}
 		}
@@ -261,7 +268,7 @@
 		} catch (err: unknown) {
 			console.error('Gagal membuat dokumen:', err);
 			const msg = err instanceof Error ? err.message : 'Gagal membuat dokumen baru';
-			alert(`Gagal membuat dokumen: ${msg}`);
+			toast.error(`Gagal membuat dokumen: ${msg}`);
 			statusMessage = msg;
 		} finally {
 			isSaving = false;
@@ -418,7 +425,7 @@
 		if (targetDoc) {
 			selectDocument(targetDoc);
 		} else {
-			alert(`Catatan dengan slug "[[${slug}]]" belum ada di workspace ini.`);
+			toast.info(`Catatan dengan slug "[[${slug}]]" belum ada di workspace ini.`);
 		}
 	}
 </script>
@@ -469,7 +476,18 @@
 		</div>
 
 		<div class="mt-3 flex-1 overflow-y-auto space-y-1">
-			{#if filteredDocuments.length === 0}
+			{#if isLoadingDocuments}
+				<div class="space-y-2 p-1" data-testid="documents-loading">
+					{#each Array(4) as _, i (i)}
+						<div
+							class="animate-pulse p-2.5 rounded-lg border border-gray-100 bg-gray-50/60 space-y-2"
+						>
+							<div class="h-3.5 bg-gray-200 rounded w-3/4"></div>
+							<div class="h-2.5 bg-gray-200 rounded w-1/3"></div>
+						</div>
+					{/each}
+				</div>
+			{:else if filteredDocuments.length === 0}
 				<div class="py-8 text-center text-xs text-gray-400">
 					Belum ada catatan.<br />Klik <strong>+ Baru</strong> untuk mulai.
 				</div>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { folderStore } from '$lib/stores/folder.svelte';
 	import { workspaceStore } from '$lib/stores/workspace.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import type { DocumentItem } from '$lib/types';
 	import { getDocumentStatus } from '$lib/types';
 	import { DocumentStatusBadge } from '$lib/components/document';
@@ -29,20 +30,24 @@
 			await folderStore.setFolderIndex(wsId, folder.id, selectedDocForIndex);
 			isSettingIndex = false;
 			selectedDocForIndex = '';
-		} catch (err) {
+			toast.success('Dokumen indeks folder berhasil diperbarui!');
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : 'Gagal menetapkan dokumen indeks folder';
 			console.error('Gagal menetapkan dokumen indeks:', err);
-			alert('Gagal menetapkan dokumen indeks folder');
+			toast.error(msg);
 		}
 	}
 
 	async function handleClearIndex() {
 		const wsId = workspaceStore.currentWorkspaceId;
 		if (!wsId || !folder) return;
-		if (!confirm('Yakin ingin melepas dokumen indeks folder ini?')) return;
 		try {
 			await folderStore.setFolderIndex(wsId, folder.id, null);
-		} catch (err) {
+			toast.info('Dokumen indeks folder telah dilepas.');
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : 'Gagal melepas dokumen indeks';
 			console.error('Gagal melepas dokumen indeks:', err);
+			toast.error(msg);
 		}
 	}
 

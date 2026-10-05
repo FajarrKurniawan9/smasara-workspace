@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { fetchApi } from '$lib/api';
+	import { toast } from '$lib/stores/toast.svelte';
 	import { goto } from '$app/navigation';
 
 	let email = $state('');
@@ -19,10 +20,12 @@
 				body: JSON.stringify({ email, password })
 			});
 
-			alert('Registrasi sukses. Silakan login.');
+			toast.success('Registrasi berhasil! Silakan login dengan akun Anda.');
 			goto('/login');
-		} catch (err: any) {
-			errorMsg = err.message || 'Registrasi gagal';
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : 'Registrasi gagal';
+			errorMsg = msg;
+			toast.error(msg);
 		} finally {
 			isLoading = false;
 		}
