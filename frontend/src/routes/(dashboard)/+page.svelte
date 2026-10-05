@@ -513,37 +513,39 @@
 			{#if currentDoc}
 				<!-- Editor Header / Metadata Bar -->
 				<div
-					class="flex items-center justify-between border-b border-gray-200 bg-gray-50/70 px-6 py-3"
+					class="flex items-center justify-between border-b border-gray-200 bg-gray-50/70 px-6 py-2.5 min-h-[46px]"
 				>
-					<div class="flex items-center gap-3 flex-1 max-w-xl">
-						<input
-							type="text"
-							bind:value={editorTitle}
-							oninput={() => handleContentChange(editorContent)}
-							placeholder="Judul Catatan..."
-							class="w-full bg-transparent font-bold text-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-0"
-						/>
-					</div>
+					<!-- Left side: Document slug & Save Indicator -->
+					<div class="flex items-center gap-3 min-w-0">
+						<div
+							class="flex items-center gap-1 text-xs text-gray-500 font-mono truncate max-w-xs sm:max-w-sm"
+						>
+							<span class="text-gray-400">[[{currentDoc.slug}]]</span>
+						</div>
 
-					<div class="flex items-center gap-3">
+						<div class="h-3.5 w-px bg-gray-200"></div>
+
 						<!-- Save Indicator -->
-						<div class="text-xs flex items-center gap-1.5">
+						<div class="text-xs flex items-center gap-1.5 shrink-0">
 							{#if saveStatus === 'saving'}
 								<span class="inline-block h-2 w-2 rounded-full bg-amber-500 animate-ping"></span>
-								<span class="text-amber-700 text-xs">Menyimpan...</span>
+								<span class="text-amber-700 text-xs font-medium">Menyimpan...</span>
 							{:else if saveStatus === 'saved'}
 								<span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
-								<span class="text-emerald-700 text-xs">{statusMessage || 'Tersimpan'}</span>
+								<span class="text-emerald-700 text-xs font-medium"
+									>{statusMessage || 'Tersimpan'}</span
+								>
 							{:else if saveStatus === 'error'}
 								<span class="inline-block h-2 w-2 rounded-full bg-red-500"></span>
-								<span class="text-red-700 text-xs">{statusMessage}</span>
+								<span class="text-red-700 text-xs font-medium">{statusMessage}</span>
 							{:else}
 								<span class="text-gray-400 font-mono text-[11px]">v{currentDoc.version}</span>
 							{/if}
 						</div>
+					</div>
 
-						<div class="h-4 w-px bg-gray-200"></div>
-
+					<!-- Right side controls -->
+					<div class="flex items-center gap-3 shrink-0">
 						<!-- Pipeline Status Badge -->
 						<DocumentStatusBadge
 							status={currentDocStatus}
@@ -639,9 +641,19 @@
 				<!-- Editor Component Body -->
 				<div class="flex-1 overflow-y-auto p-6 flex flex-col justify-between">
 					<div>
+						<!-- Clean, prominent document title input -->
+						<div class="mb-5">
+							<input
+								type="text"
+								bind:value={editorTitle}
+								oninput={() => handleContentChange(editorContent)}
+								placeholder="Judul Catatan..."
+								class="w-full bg-transparent font-bold text-2xl sm:text-3xl text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-0 border-0 p-0 tracking-tight"
+							/>
+						</div>
+
 						<MarkdownEditor
 							bind:this={editorInstance}
-							content={editorContent}
 							onChange={handleContentChange}
 							onWikilinkNavigate={navigateToWikilink}
 							availableDocuments={documents.map((d) => ({
