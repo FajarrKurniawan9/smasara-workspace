@@ -95,6 +95,39 @@
 		};
 	});
 
+	// Listener untuk pencarian (SearchPalette)
+	$effect(() => {
+		const handleSearch = async (e: Event) => {
+			const custom = e as CustomEvent<{ id: string }>;
+			const targetId = custom.detail.id;
+			const targetDoc = documents.find((d) => d.id === targetId);
+			if (targetDoc) {
+				folderStore.openDocumentEditor();
+				selectDocument(targetDoc);
+			} else {
+				const wsId = workspaceStore.currentWorkspaceId;
+				if (wsId) {
+					try {
+						const res = await fetchApi<{ document: DocumentItem }>(
+							`/api/workspaces/${wsId}/documents/${targetId}`
+						);
+						if (res.document) {
+							documents = [res.document, ...documents.filter((d) => d.id !== res.document.id)];
+							folderStore.openDocumentEditor();
+							selectDocument(res.document);
+						}
+					} catch (err) {
+						console.error('Gagal mengambil detail dokumen terpilih:', err);
+					}
+				}
+			}
+		};
+		window.addEventListener('search-select', handleSearch);
+		return () => {
+			window.removeEventListener('search-select', handleSearch);
+		};
+	});
+
 	async function loadDocuments(workspaceId: string) {
 		try {
 			const res = await fetchApi<{ documents: DocumentItem[] }>(

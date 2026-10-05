@@ -7,10 +7,16 @@
 	import { goto } from '$app/navigation';
 	import CreateWorkspaceModal from '$lib/components/workspace/CreateWorkspaceModal.svelte';
 	import { FolderTree } from '$lib/components/folder';
+	import { SearchPalette } from '$lib/components/search';
 
 	let { children } = $props();
 	let isLoggingOut = $state(false);
 	let isCreateWsModalOpen = $state(false);
+	let isSearchOpen = $state(false);
+
+	function handleSearchSelect(docId: string) {
+		window.dispatchEvent(new CustomEvent('search-select', { detail: { id: docId } }));
+	}
 
 	onMount(async () => {
 		await workspaceStore.loadWorkspaces();
@@ -132,7 +138,68 @@
 				{/if}
 			</div>
 
-			<div class="flex items-center space-x-3">
+			<div class="flex-1 flex justify-center max-w-xl mx-8 hidden md:flex">
+				{#if workspaceStore.currentWorkspace}
+					<button
+						type="button"
+						onclick={() => (isSearchOpen = true)}
+						class="flex w-full max-w-md items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-text shadow-2xs"
+						title="Cari Catatan (Cmd/Ctrl + K)"
+					>
+						<div class="flex items-center gap-2">
+							<svg
+								class="h-4 w-4 text-gray-400"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+								stroke-width="2"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+								/>
+							</svg>
+							<span class="truncate">Cari di {workspaceStore.currentWorkspace.name}...</span>
+						</div>
+						<div class="flex items-center gap-1 shrink-0">
+							<kbd
+								class="font-sans font-semibold text-[10px] bg-white border border-gray-200 text-gray-400 px-1.5 rounded shadow-sm"
+								>⌘</kbd
+							>
+							<kbd
+								class="font-sans font-semibold text-[10px] bg-white border border-gray-200 text-gray-400 px-1.5 rounded shadow-sm"
+								>K</kbd
+							>
+						</div>
+					</button>
+				{/if}
+			</div>
+
+			<div class="flex items-center space-x-2">
+				{#if workspaceStore.currentWorkspace}
+					<button
+						type="button"
+						onclick={() => (isSearchOpen = true)}
+						class="md:hidden p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+						title="Cari Catatan"
+						aria-label="Cari Catatan"
+					>
+						<svg
+							class="h-5 w-5"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+							/>
+						</svg>
+					</button>
+				{/if}
 				{#if auth.username}
 					<a
 						href="/@{auth.username}"
@@ -176,3 +243,5 @@
 	onClose={() => (isCreateWsModalOpen = false)}
 	onCreate={handleCreateWorkspace}
 />
+
+<SearchPalette bind:isOpen={isSearchOpen} onSelect={handleSearchSelect} />

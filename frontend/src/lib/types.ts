@@ -115,3 +115,15 @@ export interface PublicProfileResponse {
 	profile: PublicUserProfile;
 	documents: PublicDocumentItem[];
 }
+
+export interface SearchDocumentItem {
+	id: string;
+	title: string;
+	slug: string;
+	folder_id: string | null;
+	is_public: boolean;
+	published_at: string | null;
+	updated_at: string;
+	rank: number;
+	title_sim: number;
+}
