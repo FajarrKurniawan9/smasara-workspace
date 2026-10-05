@@ -174,7 +174,38 @@
 	}
 
 	function selectDocument(doc: DocumentItem) {
-		if (autoSaveTimer) clearTimeout(autoSaveTimer);
+		if (autoSaveTimer) {
+			clearTimeout(autoSaveTimer);
+			autoSaveTimer = undefined;
+			if (currentDoc && currentDoc.id !== doc.id && saveStatus !== 'saved') {
+				// Flush save for previous document immediately with its own content snapshot
+				const prevDoc = currentDoc;
+				const prevTitle = editorTitle;
+				const prevContent = editorContent;
+				const wsId = workspaceStore.currentWorkspaceId;
+				if (wsId) {
+					fetchApi<{ message: string; document: DocumentItem }>(
+						`/api/workspaces/${wsId}/documents/${prevDoc.id}`,
+						{
+							method: 'PUT',
+							body: JSON.stringify({
+								title: prevTitle,
+								content: prevContent,
+								folder_id: prevDoc.folder_id || undefined,
+								is_public: prevDoc.is_public,
+								version: prevDoc.version
+							})
+						}
+					)
+						.then((res) => {
+							documents = documents.map((d) => (d.id === res.document.id ? res.document : d));
+						})
+						.catch((err) => {
+							console.error('Gagal menyimpan dokumen sebelumnya saat switch:', err);
+						});
+				}
+			}
+		}
 		selectedDocId = doc.id;
 		currentDoc = doc;
 		editorTitle = doc.title;
@@ -183,9 +214,9 @@
 		saveStatus = 'idle';
 		statusMessage = '';
 
-		const wsId = workspaceStore.currentWorkspaceId;
-		if (wsId && doc.id) {
-			loadRelatedNotes(doc.id, wsId);
+		const currentWsId = workspaceStore.currentWorkspaceId;
+		if (currentWsId && doc.id) {
+			loadRelatedNotes(doc.id, currentWsId);
 		} else {
 			relatedRequestId++;
 			isRelatedLoading = false;
@@ -654,6 +685,7 @@
 
 						<MarkdownEditor
 							bind:this={editorInstance}
+							content={editorContent}
 							onChange={handleContentChange}
 							onWikilinkNavigate={navigateToWikilink}
 							availableDocuments={documents.map((d) => ({
