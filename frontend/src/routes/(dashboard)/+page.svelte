@@ -8,7 +8,8 @@
 	import MarkdownEditor from '$lib/components/editor/MarkdownEditor.svelte';
 	import ConflictModal from '$lib/components/editor/ConflictModal.svelte';
 	import { FolderIndexView } from '$lib/components/folder';
-	import { DocumentStatusBadge } from '$lib/components/document';
+	import { DocumentStatusBadge, RelatedNotesPanel } from '$lib/components/document';
+	import type { RelatedNoteItem } from '$lib/types';
 	let documents: DocumentItem[] = $state([]);
 	let selectedDocId = $state<string | null>(null);
 
@@ -29,6 +30,11 @@
 	let isSaving = $state(false);
 	let saveStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 	let statusMessage = $state('');
+
+	// Catatan Terkait (T-602)
+	let relatedNotes = $state<RelatedNoteItem[]>([]);
+	let isRelatedLoading = $state(false);
+	let relatedRequestId = 0;
 
 	let currentDocStatus = $derived.by(() => {
 		const doc = currentDoc;
@@ -147,6 +153,26 @@
 		}
 	}
 
+	async function loadRelatedNotes(docId: string, wsId: string) {
+		const reqId = ++relatedRequestId;
+		isRelatedLoading = true;
+		try {
+			const res = await fetchApi<{ related: RelatedNoteItem[] }>(
+				`/api/workspaces/${wsId}/documents/${docId}/related`
+			);
+			if (reqId !== relatedRequestId) return;
+			relatedNotes = res.related || [];
+		} catch (err) {
+			if (reqId !== relatedRequestId) return;
+			console.error('Gagal mengambil catatan terkait:', err);
+			relatedNotes = [];
+		} finally {
+			if (reqId === relatedRequestId) {
+				isRelatedLoading = false;
+			}
+		}
+	}
+
 	function selectDocument(doc: DocumentItem) {
 		if (autoSaveTimer) clearTimeout(autoSaveTimer);
 		selectedDocId = doc.id;
@@ -156,6 +182,15 @@
 		isPublic = doc.is_public;
 		saveStatus = 'idle';
 		statusMessage = '';
+
+		const wsId = workspaceStore.currentWorkspaceId;
+		if (wsId && doc.id) {
+			loadRelatedNotes(doc.id, wsId);
+		} else {
+			relatedRequestId++;
+			isRelatedLoading = false;
+			relatedNotes = [];
+		}
 	}
 
 	async function createNewDocument() {
@@ -425,6 +460,7 @@
 					>
 						<button
 							type="button"
+							data-testid="document-item"
 							onclick={() => {
 								folderStore.openDocumentEditor();
 								selectDocument(doc);
@@ -601,17 +637,70 @@
 				</div>
 
 				<!-- Editor Component Body -->
-				<div class="flex-1 overflow-y-auto p-6">
-					<MarkdownEditor
-						bind:this={editorInstance}
-						content={editorContent}
-						onChange={handleContentChange}
-						onWikilinkNavigate={navigateToWikilink}
-						availableDocuments={documents.map((d) => ({
-							id: d.id,
-							title: d.title,
-							slug: d.slug
-						}))}
+				<div class="flex-1 overflow-y-auto p-6 flex flex-col justify-between">
+					<div>
+						<MarkdownEditor
+							bind:this={editorInstance}
+							content={editorContent}
+							onChange={handleContentChange}
+							onWikilinkNavigate={navigateToWikilink}
+							availableDocuments={documents.map((d) => ({
+								id: d.id,
+								title: d.title,
+								slug: d.slug
+							}))}
+						/>
+					</div>
+					<RelatedNotesPanel
+						{relatedNotes}
+						isLoading={isRelatedLoading}
+						onSelect={(noteId) => {
+							const target = documents.find((d) => d.id === noteId);
+							if (target) {
+								if (
+									folderStore.filterMode === 'folder' &&
+									target.folder_id !== folderStore.selectedFolderId
+								) {
+									folderStore.selectFolder(target.folder_id);
+								} else if (
+									folderStore.filterMode === 'uncategorized' &&
+									target.folder_id !== null
+								) {
+									folderStore.selectFolder(null);
+								}
+								selectDocument(target);
+							} else {
+								const wsId = workspaceStore.currentWorkspaceId;
+								if (wsId) {
+									fetchApi<{ document: DocumentItem }>(
+										`/api/workspaces/${wsId}/documents/${noteId}`
+									)
+										.then((res) => {
+											if (res.document) {
+												documents = [
+													res.document,
+													...documents.filter((d) => d.id !== res.document.id)
+												];
+												if (
+													folderStore.filterMode === 'folder' &&
+													res.document.folder_id !== folderStore.selectedFolderId
+												) {
+													folderStore.selectFolder(res.document.folder_id);
+												} else if (
+													folderStore.filterMode === 'uncategorized' &&
+													res.document.folder_id !== null
+												) {
+													folderStore.selectFolder(null);
+												}
+												selectDocument(res.document);
+											}
+										})
+										.catch((err) => {
+											console.error('Gagal membuka catatan terkait:', err);
+										});
+								}
+							}
+						}}
 					/>
 				</div>
 			{:else}

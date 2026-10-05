@@ -127,3 +127,10 @@ export interface SearchDocumentItem {
 	rank: number;
 	title_sim: number;
 }
+
+export interface RelatedNoteItem {
+	id: string;
+	title: string;
+	slug: string;
+	weight: number;
+}
