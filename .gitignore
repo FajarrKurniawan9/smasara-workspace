@@ -27,3 +27,6 @@ postgres-data/
 
 # Dokumentasi lokal (PRD, arsitektur, decision log) — jangan di-commit, hanya backend & frontend
 docs/
+
+# AI Agent local configuration & skills
+.agents/
