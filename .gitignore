@@ -12,6 +12,8 @@ frontend/.env
 # Go (Backend)
 backend/vendor/
 backend/smasara-api # Hasil build binary
+backend/*.exe
+*.exe
 
 # Node/Frontend (Asumsi menggunakan React/Vue/Next)
 frontend/node_modules/
