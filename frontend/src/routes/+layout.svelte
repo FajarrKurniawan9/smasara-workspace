@@ -46,11 +46,16 @@
 </script>
 
 {#if isInitializing}
-	<div class="flex min-h-screen items-center justify-center bg-gray-100">
-		<p class="text-gray-500">Memuat Smasara...</p>
+	<div class="fixed inset-0 z-50 flex min-h-screen items-center justify-center bg-zinc-50">
+		<div class="flex flex-col items-center gap-3">
+			<div
+				class="h-6 w-6 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent"
+			></div>
+			<p class="text-sm text-zinc-500 font-medium">Memuat Smasara...</p>
+		</div>
 	</div>
-{:else}
-	{@render children()}
-
-	<ToastContainer />
 {/if}
+
+{@render children?.()}
+
+<ToastContainer />
