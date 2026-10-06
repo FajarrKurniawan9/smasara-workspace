@@ -433,12 +433,12 @@
 <div class="flex h-[calc(100vh-5rem)] gap-6">
 	<!-- Panel Dokumen Workspace (Sidebar List) -->
 	<div
-		class="w-72 flex-shrink-0 flex flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-xs"
+		class="flex w-72 flex-shrink-0 flex-col rounded-2xl bg-white p-4 shadow-card ring-1 ring-zinc-900/5"
 	>
-		<div class="flex items-center justify-between pb-3 border-b border-gray-100">
+		<div class="flex items-center justify-between border-b border-zinc-100 pb-3">
 			<div class="min-w-0 flex-1 pr-2">
 				<div class="flex items-center gap-1.5">
-					<h2 class="text-xs font-bold text-gray-800 uppercase tracking-wider truncate">
+					<h2 class="truncate text-xs font-semibold uppercase tracking-wider text-zinc-500">
 						{#if folderStore.filterMode === 'uncategorized'}
 							Uncategorized
 						{:else if folderStore.filterMode === 'folder' && folderStore.selectedFolder}
@@ -457,39 +457,39 @@
 								}
 							}}
 							title="Buka Halaman Indeks (README)"
-							class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-semibold hover:bg-emerald-200 cursor-pointer"
+							class="cursor-pointer rounded-lg border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-700 shadow-2xs transition-all hover:bg-zinc-100 active:scale-[0.98]"
 						>
 							README
 						</button>
 					{/if}
 				</div>
-				<p class="text-xs text-gray-500">{filteredDocuments.length} dokumen</p>
+				<p class="mt-0.5 text-xs text-zinc-400">{filteredDocuments.length} dokumen</p>
 			</div>
 			<button
 				type="button"
 				onclick={createNewDocument}
-				class="rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors flex items-center gap-1 shadow-xs cursor-pointer shrink-0"
+				class="flex shrink-0 cursor-pointer items-center gap-1 rounded-xl bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white shadow-input transition-all hover:bg-zinc-800 active:scale-[0.98]"
 			>
 				<span>+</span>
 				<span>Baru</span>
 			</button>
 		</div>
 
-		<div class="mt-3 flex-1 overflow-y-auto space-y-1">
+		<div class="mt-3 flex-1 space-y-1.5 overflow-y-auto pr-0.5">
 			{#if isLoadingDocuments}
 				<div class="space-y-2 p-1" data-testid="documents-loading">
 					{#each Array(4) as _, i (i)}
 						<div
-							class="animate-pulse p-2.5 rounded-lg border border-gray-100 bg-gray-50/60 space-y-2"
+							class="space-y-2 rounded-xl border border-zinc-100 bg-zinc-50/70 p-3 animate-pulse"
 						>
-							<div class="h-3.5 bg-gray-200 rounded w-3/4"></div>
-							<div class="h-2.5 bg-gray-200 rounded w-1/3"></div>
+							<div class="h-3.5 w-3/4 rounded-lg bg-zinc-200/80"></div>
+							<div class="h-2.5 w-1/3 rounded-lg bg-zinc-200/60"></div>
 						</div>
 					{/each}
 				</div>
 			{:else if filteredDocuments.length === 0}
-				<div class="py-8 text-center text-xs text-gray-400">
-					Belum ada catatan.<br />Klik <strong>+ Baru</strong> untuk mulai.
+				<div class="py-12 text-center text-xs text-zinc-400">
+					Belum ada catatan.<br />Klik <strong class="text-zinc-600">+ Baru</strong> untuk mulai.
 				</div>
 			{:else}
 				{#each filteredDocuments as doc (doc.id)}
@@ -502,10 +502,10 @@
 								e.dataTransfer.effectAllowed = 'move';
 							}
 						}}
-						class="w-full text-left rounded-lg transition-colors cursor-grab active:cursor-grabbing {selectedDocId ===
+						class="w-full cursor-grab rounded-xl text-left transition-all active:cursor-grabbing {selectedDocId ===
 						doc.id
-							? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
-							: 'hover:bg-gray-50 text-gray-700'}"
+							? 'bg-zinc-100 text-zinc-900 shadow-2xs'
+							: 'text-zinc-700 hover:bg-zinc-50/90'}"
 					>
 						<button
 							type="button"
@@ -514,10 +514,16 @@
 								folderStore.openDocumentEditor();
 								selectDocument(doc);
 							}}
-							class="w-full text-left p-2.5 flex flex-col gap-0.5 cursor-pointer"
+							class="flex w-full cursor-pointer flex-col gap-1 p-2.5 text-left active:scale-[0.99] transition-transform"
 						>
 							<div class="flex items-center justify-between gap-1.5">
-								<span class="text-sm font-semibold truncate">{doc.title}</span>
+								<span
+									class="truncate text-sm font-semibold {selectedDocId === doc.id
+										? 'text-zinc-900'
+										: 'text-zinc-800'}"
+								>
+									{doc.title}
+								</span>
 								<DocumentStatusBadge
 									status={getDocumentStatus(doc, {
 										memberCount: workspaceStore.memberCount,
@@ -528,9 +534,9 @@
 									showIcon={false}
 								/>
 							</div>
-							<div class="flex items-center justify-between text-xs text-gray-400 font-mono">
+							<div class="flex items-center justify-between font-mono text-xs text-zinc-400">
 								<span>[[{doc.slug}]]</span>
-								<span class="text-[11px]">v{doc.version}</span>
+								<span class="text-[11px] text-zinc-400/80">v{doc.version}</span>
 							</div>
 						</button>
 					</div>
@@ -543,7 +549,7 @@
 	<!-- Main Canvas: Toggle antara Folder Index View dan Document Editor -->
 	{#if folderStore.viewMode === 'folder-index' && folderStore.selectedFolder}
 		<div
-			class="flex-1 flex flex-col rounded-xl border border-gray-200 bg-white shadow-xs overflow-hidden"
+			class="flex flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-zinc-900/5"
 		>
 			<FolderIndexView
 				{documents}
@@ -557,44 +563,44 @@
 	{:else}
 		<!-- Main Editor Canvas -->
 		<div
-			class="flex-1 flex flex-col rounded-xl border border-gray-200 bg-white shadow-xs overflow-hidden"
+			class="flex flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-zinc-900/5"
 		>
 			{#if currentDoc}
 				<!-- Editor Header / Metadata Bar -->
 				<div
-					class="flex items-center justify-between border-b border-gray-200 bg-gray-50/70 px-6 py-2.5 min-h-[46px]"
+					class="flex min-h-[50px] items-center justify-between border-b border-zinc-200/80 bg-zinc-50/60 px-6 py-2.5 backdrop-blur-sm"
 				>
 					<!-- Left side: Document slug & Save Indicator -->
-					<div class="flex items-center gap-3 min-w-0">
+					<div class="flex min-w-0 items-center gap-3">
 						<div
-							class="flex items-center gap-1 text-xs text-gray-500 font-mono truncate max-w-xs sm:max-w-sm"
+							class="flex max-w-xs items-center gap-1 font-mono text-xs text-zinc-500 sm:max-w-sm"
 						>
-							<span class="text-gray-400">[[{currentDoc.slug}]]</span>
+							<span class="truncate text-zinc-400">[[{currentDoc.slug}]]</span>
 						</div>
 
-						<div class="h-3.5 w-px bg-gray-200"></div>
+						<div class="h-3.5 w-px bg-zinc-200"></div>
 
 						<!-- Save Indicator -->
-						<div class="text-xs flex items-center gap-1.5 shrink-0">
+						<div class="flex shrink-0 items-center gap-1.5 text-xs">
 							{#if saveStatus === 'saving'}
-								<span class="inline-block h-2 w-2 rounded-full bg-amber-500 animate-ping"></span>
-								<span class="text-amber-700 text-xs font-medium">Menyimpan...</span>
+								<span class="inline-block h-2 w-2 animate-ping rounded-full bg-amber-500"></span>
+								<span class="text-xs font-medium text-amber-700">Menyimpan...</span>
 							{:else if saveStatus === 'saved'}
 								<span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
-								<span class="text-emerald-700 text-xs font-medium"
+								<span class="text-xs font-medium text-emerald-700"
 									>{statusMessage || 'Tersimpan'}</span
 								>
 							{:else if saveStatus === 'error'}
 								<span class="inline-block h-2 w-2 rounded-full bg-red-500"></span>
-								<span class="text-red-700 text-xs font-medium">{statusMessage}</span>
+								<span class="text-xs font-medium text-red-700">{statusMessage}</span>
 							{:else}
-								<span class="text-gray-400 font-mono text-[11px]">v{currentDoc.version}</span>
+								<span class="font-mono text-[11px] text-zinc-400">v{currentDoc.version}</span>
 							{/if}
 						</div>
 					</div>
 
 					<!-- Right side controls -->
-					<div class="flex items-center gap-3 shrink-0">
+					<div class="flex shrink-0 items-center gap-2.5">
 						<!-- Pipeline Status Badge -->
 						<DocumentStatusBadge
 							status={currentDocStatus}
@@ -607,10 +613,10 @@
 							<a
 								href="/@{auth.username}"
 								title="Buka profil dan catatan publik"
-								class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:text-emerald-700 shadow-2xs transition-colors"
+								class="inline-flex items-center gap-1 rounded-xl border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-medium text-zinc-700 shadow-2xs transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 active:scale-[0.98]"
 							>
 								<svg
-									class="h-3.5 w-3.5 text-gray-500"
+									class="h-3.5 w-3.5 text-zinc-400"
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"
@@ -633,7 +639,7 @@
 								onclick={() => togglePublish(false)}
 								disabled={isSaving}
 								title="Kembalikan status catatan menjadi draf privat"
-								class="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100 hover:border-amber-300 transition-all shadow-2xs active:scale-95 cursor-pointer disabled:opacity-50"
+								class="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-1.5 text-xs font-semibold text-amber-800 shadow-2xs transition-all hover:bg-amber-100 hover:border-amber-300 active:scale-[0.98] disabled:opacity-50"
 							>
 								<svg
 									class="h-3.5 w-3.5 text-amber-600"
@@ -656,7 +662,7 @@
 								onclick={() => togglePublish(true)}
 								disabled={isSaving}
 								title="Publikasikan catatan ini ke profil publik"
-								class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-all shadow-xs active:scale-95 cursor-pointer disabled:opacity-50"
+								class="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white shadow-input transition-all hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-50"
 							>
 								<svg
 									class="h-3.5 w-3.5"
@@ -680,7 +686,7 @@
 							type="button"
 							onclick={() => saveDocument()}
 							disabled={isSaving}
-							class="rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 shadow-2xs cursor-pointer"
+							class="cursor-pointer rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-2xs transition-all hover:border-zinc-300 hover:bg-zinc-50 active:scale-[0.98] disabled:opacity-50"
 						>
 							{isSaving ? 'Menyimpan...' : 'Simpan'}
 						</button>
@@ -691,13 +697,13 @@
 				<div class="flex-1 overflow-y-auto p-6 flex flex-col justify-between">
 					<div>
 						<!-- Clean, prominent document title input -->
-						<div class="mb-5">
+						<div class="mb-6">
 							<input
 								type="text"
 								bind:value={editorTitle}
 								oninput={() => handleContentChange(editorContent)}
 								placeholder="Judul Catatan..."
-								class="w-full bg-transparent font-bold text-2xl sm:text-3xl text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-0 border-0 p-0 tracking-tight"
+								class="w-full border-0 bg-transparent p-0 text-2xl font-bold tracking-tight text-zinc-900 placeholder-zinc-300 focus:outline-none focus:ring-0 sm:text-3xl"
 							/>
 						</div>
 
@@ -766,8 +772,8 @@
 					/>
 				</div>
 			{:else}
-				<div class="flex flex-1 flex-col items-center justify-center p-8 text-center text-gray-400">
-					<div class="rounded-full bg-emerald-50 p-4 text-emerald-600 mb-3">
+				<div class="flex flex-1 flex-col items-center justify-center p-8 text-center text-zinc-400">
+					<div class="mb-3 rounded-2xl bg-zinc-100 p-4 text-zinc-600 shadow-input">
 						<svg
 							class="h-8 w-8"
 							fill="none"
@@ -782,10 +788,12 @@
 							/>
 						</svg>
 					</div>
-					<h3 class="text-base font-semibold text-gray-700">Belum ada catatan yang dipilih</h3>
-					<p class="text-xs text-gray-500 mt-1 max-w-sm">
+					<h3 class="text-base font-semibold tracking-tight text-zinc-800">
+						Belum ada catatan yang dipilih
+					</h3>
+					<p class="mt-1 max-w-sm text-xs text-zinc-500">
 						Pilih salah satu catatan dari daftar di sebelah kiri atau klik tombol <strong
-							>+ Baru</strong
+							class="text-zinc-700">+ Baru</strong
 						> untuk membuat catatan baru.
 					</p>
 				</div>

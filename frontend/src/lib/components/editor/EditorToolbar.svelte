@@ -25,18 +25,18 @@
 
 {#if editor}
 	<div
-		class="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b border-gray-200 bg-white/95 px-3 py-2 backdrop-blur-sm"
+		class="sticky top-0 z-10 flex flex-wrap items-center gap-1.5 border-b border-zinc-200/80 bg-white/90 px-3.5 py-2 backdrop-blur-md"
 	>
 		<!-- Text Style / Headings -->
-		<div class="flex items-center gap-0.5 border-r border-gray-200 pr-1.5">
+		<div class="flex items-center gap-1 border-r border-zinc-200/80 pr-2">
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().setParagraph().run()}
-				class="rounded px-2 py-1 text-xs font-medium transition-colors {editor.isActive(
+				class="rounded-lg px-2.5 py-1 text-xs font-medium transition-all active:scale-[0.97] {editor.isActive(
 					'paragraph'
 				) && !editor.isActive('heading')
-					? 'bg-emerald-100 text-emerald-800'
-					: 'text-gray-600 hover:bg-gray-100'}"
+					? 'bg-zinc-900 text-white shadow-2xs'
+					: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}"
 				title="Paragraph"
 			>
 				P
@@ -44,11 +44,14 @@
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-				class="rounded px-2 py-1 text-xs font-bold transition-colors {editor.isActive('heading', {
-					level: 1
-				})
-					? 'bg-emerald-100 text-emerald-800'
-					: 'text-gray-600 hover:bg-gray-100'}"
+				class="rounded-lg px-2.5 py-1 text-xs font-semibold transition-all active:scale-[0.97] {editor.isActive(
+					'heading',
+					{
+						level: 1
+					}
+				)
+					? 'bg-zinc-900 text-white shadow-2xs'
+					: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}"
 				title="Heading 1"
 			>
 				H1
@@ -56,11 +59,14 @@
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-				class="rounded px-2 py-1 text-xs font-bold transition-colors {editor.isActive('heading', {
-					level: 2
-				})
-					? 'bg-emerald-100 text-emerald-800'
-					: 'text-gray-600 hover:bg-gray-100'}"
+				class="rounded-lg px-2.5 py-1 text-xs font-semibold transition-all active:scale-[0.97] {editor.isActive(
+					'heading',
+					{
+						level: 2
+					}
+				)
+					? 'bg-zinc-900 text-white shadow-2xs'
+					: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}"
 				title="Heading 2"
 			>
 				H2
@@ -68,11 +74,14 @@
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-				class="rounded px-2 py-1 text-xs font-bold transition-colors {editor.isActive('heading', {
-					level: 3
-				})
-					? 'bg-emerald-100 text-emerald-800'
-					: 'text-gray-600 hover:bg-gray-100'}"
+				class="rounded-lg px-2.5 py-1 text-xs font-semibold transition-all active:scale-[0.97] {editor.isActive(
+					'heading',
+					{
+						level: 3
+					}
+				)
+					? 'bg-zinc-900 text-white shadow-2xs'
+					: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}"
 				title="Heading 3"
 			>
 				H3
@@ -80,13 +89,15 @@
 		</div>
 
 		<!-- Formatting (Bold, Italic, Strike, Code) -->
-		<div class="flex items-center gap-0.5 border-r border-gray-200 pr-1.5">
+		<div class="flex items-center gap-1 border-r border-zinc-200/80 pr-2">
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().toggleBold().run()}
-				class="rounded px-2 py-1 text-xs font-bold transition-colors {editor.isActive('bold')
-					? 'bg-emerald-100 text-emerald-800'
-					: 'text-gray-600 hover:bg-gray-100'}"
+				class="rounded-lg px-2.5 py-1 text-xs font-bold transition-all active:scale-[0.97] {editor.isActive(
+					'bold'
+				)
+					? 'bg-zinc-900 text-white shadow-2xs'
+					: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}"
 				title="Bold (Ctrl+B)"
 			>
 				B
@@ -94,9 +105,11 @@
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().toggleItalic().run()}
-				class="rounded px-2 py-1 text-xs italic transition-colors {editor.isActive('italic')
-					? 'bg-emerald-100 text-emerald-800'
-					: 'text-gray-600 hover:bg-gray-100'}"
+				class="rounded-lg px-2.5 py-1 text-xs italic transition-all active:scale-[0.97] {editor.isActive(
+					'italic'
+				)
+					? 'bg-zinc-900 text-white shadow-2xs'
+					: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}"
 				title="Italic (Ctrl+I)"
 			>
 				I
@@ -104,9 +117,11 @@
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().toggleStrike().run()}
-				class="rounded px-2 py-1 text-xs line-through transition-colors {editor.isActive('strike')
-					? 'bg-emerald-100 text-emerald-800'
-					: 'text-gray-600 hover:bg-gray-100'}"
+				class="rounded-lg px-2.5 py-1 text-xs line-through transition-all active:scale-[0.97] {editor.isActive(
+					'strike'
+				)
+					? 'bg-zinc-900 text-white shadow-2xs'
+					: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}"
 				title="Strikethrough"
 			>
 				S
@@ -114,9 +129,11 @@
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().toggleCode().run()}
-				class="rounded font-mono px-2 py-1 text-xs transition-colors {editor.isActive('code')
-					? 'bg-emerald-100 text-emerald-800'
-					: 'text-gray-600 hover:bg-gray-100'}"
+				class="rounded-lg font-mono px-2 py-1 text-xs transition-all active:scale-[0.97] {editor.isActive(
+					'code'
+				)
+					? 'bg-zinc-900 text-white shadow-2xs'
+					: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}"
 				title="Inline Code"
 			>
 				&lt;/&gt;
@@ -124,13 +141,15 @@
 		</div>
 
 		<!-- Lists & Quote -->
-		<div class="flex items-center gap-0.5 border-r border-gray-200 pr-1.5">
+		<div class="flex items-center gap-1 border-r border-zinc-200/80 pr-2">
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().toggleBulletList().run()}
-				class="rounded px-2 py-1 text-xs transition-colors {editor.isActive('bulletList')
-					? 'bg-emerald-100 text-emerald-800'
-					: 'text-gray-600 hover:bg-gray-100'}"
+				class="rounded-lg px-2.5 py-1 text-xs font-medium transition-all active:scale-[0.97] {editor.isActive(
+					'bulletList'
+				)
+					? 'bg-zinc-900 text-white shadow-2xs'
+					: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}"
 				title="Bullet List"
 			>
 				• List
@@ -138,9 +157,11 @@
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().toggleOrderedList().run()}
-				class="rounded px-2 py-1 text-xs transition-colors {editor.isActive('orderedList')
-					? 'bg-emerald-100 text-emerald-800'
-					: 'text-gray-600 hover:bg-gray-100'}"
+				class="rounded-lg px-2.5 py-1 text-xs font-medium transition-all active:scale-[0.97] {editor.isActive(
+					'orderedList'
+				)
+					? 'bg-zinc-900 text-white shadow-2xs'
+					: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}"
 				title="Numbered List"
 			>
 				1. List
@@ -148,9 +169,11 @@
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().toggleBlockquote().run()}
-				class="rounded px-2 py-1 text-xs transition-colors {editor.isActive('blockquote')
-					? 'bg-emerald-100 text-emerald-800'
-					: 'text-gray-600 hover:bg-gray-100'}"
+				class="rounded-lg px-2.5 py-1 text-xs font-medium transition-all active:scale-[0.97] {editor.isActive(
+					'blockquote'
+				)
+					? 'bg-zinc-900 text-white shadow-2xs'
+					: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}"
 				title="Blockquote"
 			>
 				&ldquo; Quote
@@ -158,9 +181,11 @@
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().toggleCodeBlock().run()}
-				class="rounded font-mono px-2 py-1 text-xs transition-colors {editor.isActive('codeBlock')
-					? 'bg-emerald-100 text-emerald-800'
-					: 'text-gray-600 hover:bg-gray-100'}"
+				class="rounded-lg font-mono px-2 py-1 text-xs transition-all active:scale-[0.97] {editor.isActive(
+					'codeBlock'
+				)
+					? 'bg-zinc-900 text-white shadow-2xs'
+					: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}"
 				title="Code Block"
 			>
 				Block Code
@@ -168,13 +193,15 @@
 		</div>
 
 		<!-- Links & Wikilinks -->
-		<div class="flex items-center gap-1 border-r border-gray-200 pr-1.5">
+		<div class="flex items-center gap-1.5 border-r border-zinc-200/80 pr-2">
 			<button
 				type="button"
 				onclick={setLink}
-				class="rounded px-2 py-1 text-xs transition-colors {editor.isActive('link')
-					? 'bg-emerald-100 text-emerald-800'
-					: 'text-gray-600 hover:bg-gray-100'}"
+				class="rounded-lg px-2.5 py-1 text-xs font-medium transition-all active:scale-[0.97] {editor.isActive(
+					'link'
+				)
+					? 'bg-zinc-900 text-white shadow-2xs'
+					: 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'}"
 				title="Insert Link"
 			>
 				Link
@@ -183,21 +210,21 @@
 			<button
 				type="button"
 				onclick={onInsertWikilink}
-				class="rounded bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors flex items-center gap-1"
+				class="flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-medium text-zinc-700 shadow-2xs transition-all hover:border-zinc-300 hover:bg-white hover:text-zinc-900 active:scale-[0.97]"
 				title="Sisipkan Wikilink [[catatan]]"
 			>
-				<span>[[ ]]</span>
+				<span class="font-mono text-[11px] text-zinc-400">[[ ]]</span>
 				<span>Wikilink</span>
 			</button>
 		</div>
 
 		<!-- Undo / Redo -->
-		<div class="flex items-center gap-0.5 ml-auto">
+		<div class="ml-auto flex items-center gap-1">
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().undo().run()}
 				disabled={!editor.can().undo()}
-				class="rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+				class="rounded-lg px-2 py-1 text-xs font-semibold text-zinc-500 transition-all hover:bg-zinc-100 hover:text-zinc-800 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-30"
 				title="Undo"
 			>
 				↺
@@ -206,7 +233,7 @@
 				type="button"
 				onclick={() => editor?.chain().focus().redo().run()}
 				disabled={!editor.can().redo()}
-				class="rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+				class="rounded-lg px-2 py-1 text-xs font-semibold text-zinc-500 transition-all hover:bg-zinc-100 hover:text-zinc-800 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-30"
 				title="Redo"
 			>
 				↻

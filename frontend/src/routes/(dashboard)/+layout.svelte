@@ -45,30 +45,35 @@
 	}
 </script>
 
-<div class="flex h-screen overflow-hidden bg-gray-50">
+<div class="flex h-screen overflow-hidden bg-zinc-50 text-zinc-900">
 	<!-- Sidebar -->
 	<aside
-		class="w-64 flex-shrink-0 border-r border-gray-200 bg-white shadow-sm flex flex-col hidden md:flex"
+		class="hidden w-64 flex-shrink-0 flex-col border-r border-zinc-200/80 bg-white/80 backdrop-blur-md md:flex"
 	>
 		<!-- Logo / Brand -->
 		<div
-			class="flex h-16 items-center justify-between border-b border-gray-200 px-6 font-bold text-gray-800 text-lg"
+			class="flex h-16 items-center justify-between border-b border-zinc-200/80 px-6 font-semibold tracking-tight text-zinc-900"
 		>
-			<span class="flex items-center gap-2">
-				<span class="text-emerald-600">Smasara</span>
+			<span class="flex items-center gap-2.5">
+				<span
+					class="flex h-7 w-7 items-center justify-center rounded-xl bg-zinc-900 text-xs font-bold text-white shadow-input"
+				>
+					S
+				</span>
+				<span class="text-base font-semibold tracking-tight text-zinc-900">Smasara</span>
 			</span>
 		</div>
 
 		<!-- Workspace Selector & Management -->
-		<div class="border-b border-gray-100 p-3 bg-gray-50/50">
-			<div class="flex items-center justify-between mb-1.5 px-1">
-				<span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+		<div class="border-b border-zinc-100 p-3 bg-zinc-50/60">
+			<div class="mb-2 flex items-center justify-between px-1">
+				<span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
 					Workspace
 				</span>
 				<button
 					type="button"
 					onclick={() => (isCreateWsModalOpen = true)}
-					class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-0.5 hover:underline"
+					class="flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-200/60 hover:text-zinc-900 active:scale-[0.98]"
 					title="Buat Workspace Baru"
 				>
 					<span>+</span>
@@ -79,7 +84,7 @@
 			{#if workspaceStore.workspaces.length > 0}
 				<select
 					bind:value={workspaceStore.currentWorkspaceId}
-					class="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-800 shadow-2xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 truncate"
+					class="w-full truncate rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-800 shadow-input transition-all hover:border-zinc-300 focus:border-zinc-900 focus:outline-none focus:ring-4 focus:ring-zinc-900/5"
 				>
 					{#each workspaceStore.workspaces as ws (ws.id)}
 						<option value={ws.id}>
@@ -92,7 +97,7 @@
 				<button
 					type="button"
 					onclick={() => (isCreateWsModalOpen = true)}
-					class="w-full rounded-lg border border-dashed border-gray-300 p-2 text-center text-xs text-emerald-700 hover:border-emerald-400 hover:bg-emerald-50/40 transition-colors"
+					class="w-full rounded-xl border border-dashed border-zinc-300 p-2.5 text-center text-xs font-medium text-zinc-700 transition-all hover:border-zinc-400 hover:bg-zinc-100/60 active:scale-[0.98]"
 				>
 					+ Buat Workspace Pertama
 				</button>
@@ -105,11 +110,11 @@
 		</div>
 
 		<!-- Logout Button -->
-		<div class="border-t border-gray-200 p-4">
+		<div class="border-t border-zinc-200/80 p-3">
 			<button
 				onclick={handleLogout}
 				disabled={isLoggingOut}
-				class="w-full rounded-lg bg-red-50 text-red-600 px-4 py-2 text-xs text-center font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
+				class="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100/80 px-3 py-2 text-xs font-medium text-zinc-700 transition-all hover:bg-red-50 hover:text-red-600 active:scale-[0.98] disabled:opacity-50"
 			>
 				{isLoggingOut ? 'Keluar...' : 'Logout'}
 			</button>
@@ -120,35 +125,35 @@
 	<div class="flex flex-1 flex-col overflow-hidden">
 		<!-- Topbar -->
 		<header
-			class="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6 shadow-xs"
+			class="flex h-16 items-center justify-between border-b border-zinc-200/80 bg-white/80 px-6 backdrop-blur-md"
 		>
 			<div class="flex items-center md:hidden">
-				<span class="font-bold text-gray-800 text-lg">Smasara</span>
+				<span class="text-base font-semibold tracking-tight text-zinc-900">Smasara</span>
 			</div>
 
-			<div class="hidden md:flex items-center gap-2 text-xs text-gray-500">
+			<div class="hidden items-center gap-2 text-xs text-zinc-500 md:flex">
 				{#if workspaceStore.currentWorkspace}
-					<span class="font-medium text-gray-700">
+					<span class="font-medium text-zinc-800">
 						{workspaceStore.currentWorkspace.name}
 					</span>
-					<span>•</span>
-					<span class="font-mono text-gray-400">
+					<span class="text-zinc-300">•</span>
+					<span class="font-mono text-zinc-400">
 						/{workspaceStore.currentWorkspace.slug}
 					</span>
 				{/if}
 			</div>
 
-			<div class="flex-1 flex justify-center max-w-xl mx-8 hidden md:flex">
+			<div class="mx-8 hidden max-w-xl flex-1 justify-center md:flex">
 				{#if workspaceStore.currentWorkspace}
 					<button
 						type="button"
 						onclick={() => (isSearchOpen = true)}
-						class="flex w-full max-w-md items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-text shadow-2xs"
+						class="flex w-full max-w-md cursor-text items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50/80 px-3.5 py-2 text-sm text-zinc-500 shadow-input transition-all hover:border-zinc-300 hover:bg-white active:scale-[0.99] focus:border-zinc-900 focus:outline-none focus:ring-4 focus:ring-zinc-900/5"
 						title="Cari Catatan (Cmd/Ctrl + K)"
 					>
-						<div class="flex items-center gap-2">
+						<div class="flex items-center gap-2.5">
 							<svg
-								class="h-4 w-4 text-gray-400"
+								class="h-4 w-4 text-zinc-400"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -162,13 +167,13 @@
 							</svg>
 							<span class="truncate">Cari di {workspaceStore.currentWorkspace.name}...</span>
 						</div>
-						<div class="flex items-center gap-1 shrink-0">
+						<div class="flex shrink-0 items-center gap-1">
 							<kbd
-								class="font-sans font-semibold text-[10px] bg-white border border-gray-200 text-gray-400 px-1.5 rounded shadow-sm"
+								class="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold text-zinc-400 shadow-2xs"
 								>⌘</kbd
 							>
 							<kbd
-								class="font-sans font-semibold text-[10px] bg-white border border-gray-200 text-gray-400 px-1.5 rounded shadow-sm"
+								class="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold text-zinc-400 shadow-2xs"
 								>K</kbd
 							>
 						</div>
@@ -181,7 +186,7 @@
 					<button
 						type="button"
 						onclick={() => (isSearchOpen = true)}
-						class="md:hidden p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+						class="rounded-xl p-2 text-zinc-500 transition-all hover:bg-zinc-100 hover:text-zinc-800 active:scale-[0.98] md:hidden"
 						title="Cari Catatan"
 						aria-label="Cari Catatan"
 					>
@@ -203,11 +208,11 @@
 				{#if auth.username}
 					<a
 						href="/@{auth.username}"
-						class="text-xs font-medium text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-md transition-colors flex items-center gap-1.5"
+						class="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-input transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 active:scale-[0.98]"
 						title="Lihat Profil Publik"
 					>
 						<svg
-							class="w-3.5 h-3.5"
+							class="h-3.5 w-3.5 text-zinc-400"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -223,7 +228,7 @@
 						<span>@{auth.username}</span>
 					</a>
 				{:else}
-					<span class="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
+					<span class="rounded-xl bg-zinc-100 px-2.5 py-1 font-mono text-xs text-zinc-500">
 						{auth.userId ? auth.userId.substring(0, 8) + '...' : 'Unknown'}
 					</span>
 				{/if}
@@ -231,7 +236,7 @@
 		</header>
 
 		<!-- Main Content Scrollable Area -->
-		<main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+		<main class="flex-1 overflow-y-auto p-6 bg-zinc-50">
 			{@render children()}
 		</main>
 	</div>

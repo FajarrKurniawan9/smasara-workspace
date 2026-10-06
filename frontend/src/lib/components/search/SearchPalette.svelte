@@ -150,7 +150,7 @@
 	>
 		<!-- Backdrop -->
 		<div
-			class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+			class="fixed inset-0 bg-zinc-900/20 backdrop-blur-sm transition-opacity"
 			aria-hidden="true"
 			onclick={() => (isOpen = false)}
 			transition:fade={{ duration: 150 }}
@@ -158,12 +158,12 @@
 
 		<!-- Command Palette Panel -->
 		<div
-			class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden ring-1 ring-black/5"
+			class="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-zinc-900/5"
 			transition:slide={{ duration: 200, axis: 'y' }}
 		>
-			<div class="flex items-center px-4 border-b border-gray-100">
+			<div class="flex items-center border-b border-zinc-100 px-4">
 				<svg
-					class="w-5 h-5 text-gray-400"
+					class="h-5 w-5 text-zinc-400"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
@@ -180,7 +180,7 @@
 					bind:value={searchQuery}
 					oninput={handleInput}
 					type="text"
-					class="w-full py-4 pl-3 pr-4 text-base bg-transparent border-0 focus:ring-0 text-gray-900 placeholder-gray-400 outline-none"
+					class="w-full border-0 bg-transparent py-4 pl-3 pr-4 text-base text-zinc-900 placeholder-zinc-400 outline-none focus:ring-0"
 					placeholder="Cari catatan... (judul atau konten)"
 					autocomplete="off"
 				/>
@@ -188,50 +188,50 @@
 				{#if isLoading}
 					<span class="flex h-4 w-4 shrink-0">
 						<span
-							class="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600 border-t-2 border-transparent"
+							class="h-4 w-4 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent"
 						></span>
 					</span>
 				{:else}
 					<span
-						class="text-[10px] font-semibold text-gray-400 border border-gray-200 rounded px-1.5 py-0.5 bg-gray-50"
+						class="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold text-zinc-400 shadow-2xs"
 					>
 						ESC
 					</span>
 				{/if}
 			</div>
 
-			<div class="max-h-[60vh] overflow-y-auto overscroll-contain py-2">
+			<div class="max-h-[60vh] overscroll-contain overflow-y-auto p-2">
 				{#if searchQuery.trim() === ''}
 					<div class="px-6 py-12 text-center">
-						<p class="text-sm text-gray-500">Mulai mengetik untuk mencari catatan.</p>
+						<p class="text-sm text-zinc-500">Mulai mengetik untuk mencari catatan.</p>
 					</div>
 				{:else if results.length === 0 && !isLoading}
 					<div class="px-6 py-12 text-center">
-						<p class="text-sm text-gray-500">
+						<p class="text-sm text-zinc-500">
 							Tidak ada catatan yang cocok dengan "{searchQuery}".
 						</p>
 					</div>
 				{:else}
-					<div class="text-sm text-gray-700" role="listbox">
+					<div class="space-y-1 text-sm text-zinc-700" role="listbox">
 						{#each results as doc, i (doc.id)}
 							<button
 								type="button"
 								id="search-item-{i}"
 								role="option"
 								aria-selected={i === selectedIndex}
-								class="w-full text-left cursor-default select-none px-4 py-3 rounded-xl flex flex-col gap-1 transition-colors {i ===
+								class="flex w-full cursor-default select-none flex-col gap-1 rounded-xl px-4 py-3 text-left transition-all {i ===
 								selectedIndex
-									? 'bg-emerald-50 text-emerald-900'
-									: 'hover:bg-gray-50'}"
+									? 'bg-zinc-100 text-zinc-900'
+									: 'text-zinc-700 hover:bg-zinc-50'}"
 								onmousemove={() => (selectedIndex = i)}
 								onclick={() => selectDocument(doc)}
 							>
 								<div class="flex items-start justify-between gap-3">
-									<div class="flex items-center gap-2 min-w-0">
+									<div class="flex min-w-0 items-center gap-2">
 										<svg
-											class="w-4 h-4 shrink-0 {i === selectedIndex
-												? 'text-emerald-500'
-												: 'text-gray-400'}"
+											class="h-4 w-4 shrink-0 {i === selectedIndex
+												? 'text-zinc-900'
+												: 'text-zinc-400'}"
 											fill="none"
 											viewBox="0 0 24 24"
 											stroke="currentColor"
@@ -245,15 +245,15 @@
 										</svg>
 										<span
 											class="font-medium truncate {i === selectedIndex
-												? 'text-emerald-800'
-												: 'text-gray-900'}"
+												? 'text-zinc-900 font-semibold'
+												: 'text-zinc-800'}"
 										>
 											{doc.title}
 										</span>
 									</div>
 									{#if doc.is_public}
 										<span
-											class="shrink-0 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-medium"
+											class="shrink-0 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700"
 										>
 											Publik
 										</span>
@@ -261,16 +261,14 @@
 								</div>
 								<div class="flex items-center gap-3 pl-6">
 									<span
-										class="text-xs font-mono {i === selectedIndex
-											? 'text-emerald-600/70'
-											: 'text-gray-400'} truncate"
+										class="truncate font-mono text-xs {i === selectedIndex
+											? 'text-zinc-600'
+											: 'text-zinc-400'}"
 									>
 										[[{doc.slug}]]
 									</span>
 									<span
-										class="text-[10px] {i === selectedIndex
-											? 'text-emerald-600/50'
-											: 'text-gray-300'}"
+										class="text-[10px] {i === selectedIndex ? 'text-zinc-500' : 'text-zinc-400'}"
 									>
 										Update: {new Date(doc.updated_at).toLocaleDateString('id-ID')}
 									</span>
@@ -282,23 +280,23 @@
 			</div>
 
 			<div
-				class="bg-gray-50 px-4 py-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500"
+				class="flex items-center justify-between border-t border-zinc-100 bg-zinc-50/70 px-4 py-3 text-xs text-zinc-500"
 			>
 				<div class="flex items-center gap-3">
 					<span class="flex items-center gap-1">
 						<kbd
-							class="font-sans font-semibold bg-white border border-gray-200 px-1.5 py-0.5 rounded shadow-sm text-[10px]"
+							class="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold text-zinc-400 shadow-2xs"
 							>↑</kbd
 						>
 						<kbd
-							class="font-sans font-semibold bg-white border border-gray-200 px-1.5 py-0.5 rounded shadow-sm text-[10px]"
+							class="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold text-zinc-400 shadow-2xs"
 							>↓</kbd
 						>
 						Navigasi
 					</span>
 					<span class="flex items-center gap-1">
 						<kbd
-							class="font-sans font-semibold bg-white border border-gray-200 px-1.5 py-0.5 rounded shadow-sm text-[10px]"
+							class="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold text-zinc-400 shadow-2xs"
 							>↵</kbd
 						>
 						Pilih
@@ -306,7 +304,7 @@
 				</div>
 				<span class="flex items-center gap-1">
 					<kbd
-						class="font-sans font-semibold bg-white border border-gray-200 px-1.5 py-0.5 rounded shadow-sm text-[10px]"
+						class="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold text-zinc-400 shadow-2xs"
 						>ESC</kbd
 					>
 					Tutup

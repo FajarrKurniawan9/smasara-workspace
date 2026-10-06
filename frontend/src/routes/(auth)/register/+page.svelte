@@ -32,49 +32,46 @@
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-gray-100">
-	<div class="w-full max-w-md rounded-xl bg-white p-8 shadow-md">
-		<h1 class="mb-6 text-center text-3xl font-bold text-gray-800">Daftar Smasara</h1>
+<div class="flex min-h-screen items-center justify-center p-4">
+	<div class="w-full max-w-[26rem] card-smasara">
+		<div class="mb-8 text-center">
+			<h1 class="text-2xl font-semibold tracking-tight text-zinc-900">Daftar Smasara</h1>
+			<p class="mt-2 text-sm text-zinc-500">Mulai ciptakan ekosistem tulisanmu</p>
+		</div>
 
 		{#if errorMsg}
-			<div class="mb-4 rounded bg-red-100 p-3 text-red-700">{errorMsg}</div>
+			<div class="mb-6 rounded-xl bg-red-50 p-4 text-sm text-red-600 ring-1 ring-red-500/10">
+				{errorMsg}
+			</div>
 		{/if}
 
-		<form onsubmit={handleRegister} class="space-y-4">
+		<form onsubmit={handleRegister} class="space-y-5">
 			<div>
-				<label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-				<input
-					bind:value={email}
-					type="email"
-					id="email"
-					required
-					class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-				/>
+				<label for="email" class="text-sm font-medium text-zinc-700">Email</label>
+				<input bind:value={email} type="email" id="email" required class="input-smasara" />
 			</div>
 
 			<div>
-				<label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+				<label for="password" class="text-sm font-medium text-zinc-700">Password</label>
 				<input
 					bind:value={password}
 					type="password"
 					id="password"
 					required
 					minlength="6"
-					class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+					class="input-smasara"
 				/>
 			</div>
 
-			<button
-				type="submit"
-				disabled={isLoading}
-				class="w-full rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
-			>
+			<button type="submit" disabled={isLoading} class="btn-primary mt-6">
 				{isLoading ? 'Memproses...' : 'Daftar Sekarang'}
 			</button>
 		</form>
 
-		<p class="mt-4 text-center text-sm text-gray-600">
-			Sudah punya akun? <a href="/login" class="font-medium text-indigo-600 hover:text-indigo-500"
+		<p class="mt-8 text-center text-sm text-zinc-500">
+			Sudah punya akun? <a
+				href="/login"
+				class="font-medium text-zinc-900 underline decoration-zinc-300 decoration-1 underline-offset-4 transition-colors hover:decoration-zinc-900"
 				>Login di sini</a
 			>
 		</p>
