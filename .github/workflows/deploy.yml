@@ -1,0 +1,39 @@
+name: Continuous Deployment to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to Production VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Execute Remote SSH Commands
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          script: |
+            echo "==> Masuk ke direktori project di VPS..."
+            cd ~/smasara_workspace || cd ~/smasara-workspace
+
+            echo "==> Menarik pembaruan kode terbaru dari branch main..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "==> Membangun dan menjalankan ulang container Docker..."
+            docker compose up -d --build
+
+            echo "==> Membersihkan image dangling yang tidak terpakai..."
+            docker image prune -f
+
+            echo "==> Deployment berhasil diselesaikan!"
