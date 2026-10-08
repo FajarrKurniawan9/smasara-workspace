@@ -44,20 +44,20 @@
 	const fonts: Array<{ id: FontOption; label: string; desc: string; sample: string }> = [
 		{
 			id: 'sans',
-			label: 'Sans-Serif (Inter)',
-			desc: 'Modern, rapi & universal',
+			label: 'Sans-Serif (Google Sans)',
+			desc: 'Geometris, modern & jernih ala Gemini',
 			sample: 'Aa Catatan'
 		},
 		{
 			id: 'serif',
-			label: 'Serif (Merriweather)',
-			desc: 'Klasik, sastra & fokus membaca',
+			label: 'Serif (Anthropic Serif)',
+			desc: 'Elegan, editorial & berkarakter ala Claude',
 			sample: 'Aa Catatan'
 		},
 		{
 			id: 'mono',
-			label: 'Monospace (JetBrains)',
-			desc: 'Teknis, terstruktur & akurat',
+			label: 'Monospace (Google Sans Code)',
+			desc: 'Teknis & terstruktur untuk kode',
 			sample: 'Aa Catatan'
 		}
 	];

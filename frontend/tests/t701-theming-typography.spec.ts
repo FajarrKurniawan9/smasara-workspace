@@ -183,7 +183,12 @@ test.describe('T-701: Theming & Typography Kustom', () => {
 		await serifBtn.click();
 		await expect(page.locator('html')).toHaveAttribute('data-font', 'serif');
 
-		// Ganti ke font Mono
+		// Ganti ke font Sans (Google Sans)
+		const sansBtn = page.getByTestId('font-btn-sans');
+		await sansBtn.click();
+		await expect(page.locator('html')).toHaveAttribute('data-font', 'sans');
+
+		// Ganti ke font Mono (Google Sans Code)
 		const monoBtn = page.getByTestId('font-btn-mono');
 		await monoBtn.click();
 		await expect(page.locator('html')).toHaveAttribute('data-font', 'mono');
