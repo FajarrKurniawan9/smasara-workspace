@@ -35,7 +35,7 @@ services:
       - DB_PASSWORD=531269
       - DB_NAME=smasara_db
 
-  # 3. Svelte Frontend
+  # 3. Svelte Frontend (Production Container)
   frontend:
     build:
       context: ./frontend
@@ -46,11 +46,9 @@ services:
       - backend
     environment:
       - BACKEND_URL=http://backend:8080
-    # sehingga Anda tidak perlu merestart docker saat mengedit file Svelte
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-
+      - PORT=5173
+      - HOST=0.0.0.0
+      - NODE_ENV=production
 volumes:
   # Ini memastikan data database Anda tidak hilang saat container dimatikan
   postgres_data:
