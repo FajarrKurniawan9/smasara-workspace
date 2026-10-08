@@ -84,6 +84,25 @@ html[data-font='mono'] {
 
 .smasara-editor-content {
 	font-family: var(--editor-font) !important;
+	color: var(--text-primary) !important;
+}
+
+.smasara-editor-content h1,
+.smasara-editor-content h2,
+.smasara-editor-content h3,
+.smasara-editor-content h4,
+.smasara-editor-content p,
+.smasara-editor-content span,
+.smasara-editor-content strong,
+.smasara-editor-content em,
+.smasara-editor-content li {
+	color: var(--text-primary) !important;
+}
+
+/* Menghilangkan tanda petik/backtick bawaan Tailwind Typography pada <code> */
+.prose :where(code):not(:where([class~='not-prose'], [class~='not-prose'] *))::before,
+.prose :where(code):not(:where([class~='not-prose'], [class~='not-prose'] *))::after {
+	content: '' !important;
 }
 
 @layer components {

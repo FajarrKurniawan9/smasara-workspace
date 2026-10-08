@@ -68,7 +68,7 @@
 			editorProps: {
 				attributes: {
 					class:
-						'prose prose-emerald dark:prose-invert max-w-none focus:outline-none min-h-[350px] p-6 text-[var(--text-primary)] leading-relaxed smasara-editor-content'
+						'prose max-w-none focus:outline-none min-h-[350px] p-6 text-[var(--text-primary)] leading-relaxed smasara-editor-content'
 				},
 				handleClick: (view, pos, event) => {
 					const target = event.target as HTMLElement | null;
@@ -203,10 +203,26 @@
 		border-radius: 0.5rem;
 		font-size: 0.875rem;
 	}
+	/* Hilangkan tanda kutip / backticks bawaan @tailwindcss/typography */
+	:global(.tiptap code::before),
+	:global(.tiptap code::after) {
+		content: '' !important;
+	}
+
+	:global(.tiptap h1),
+	:global(.tiptap h2),
+	:global(.tiptap h3),
+	:global(.tiptap h4),
+	:global(.tiptap h5),
+	:global(.tiptap h6) {
+		color: var(--text-primary) !important;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+	}
 
 	:global(.tiptap code) {
 		background-color: var(--bg-surface-subtle);
-		color: var(--text-primary);
+		color: var(--text-primary) !important;
 		border: 1px solid var(--border-app);
 		padding: 0.15rem 0.35rem;
 		border-radius: 0.375rem;
@@ -214,7 +230,6 @@
 		font-family: var(--font-mono, ui-monospace, monospace);
 		font-weight: 500;
 	}
-
 	:global(.tiptap pre code) {
 		background: transparent;
 		border: none;
