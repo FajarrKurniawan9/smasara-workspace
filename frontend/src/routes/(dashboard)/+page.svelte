@@ -433,9 +433,9 @@
 <div class="flex h-[calc(100vh-5rem)] gap-6">
 	<!-- Panel Dokumen Workspace (Sidebar List) -->
 	<div
-		class="flex w-72 flex-shrink-0 flex-col rounded-2xl bg-white p-4 shadow-card ring-1 ring-zinc-900/5"
+		class="flex w-72 flex-shrink-0 flex-col rounded-2xl bg-[var(--bg-surface)] p-4 shadow-card ring-1 ring-zinc-900/5 dark:ring-zinc-800"
 	>
-		<div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+		<div class="flex items-center justify-between border-b border-[var(--border-app-subtle)] pb-3">
 			<div class="min-w-0 flex-1 pr-2">
 				<div class="flex items-center gap-1.5">
 					<h2 class="truncate text-xs font-semibold uppercase tracking-wider text-zinc-500">
@@ -504,8 +504,8 @@
 						}}
 						class="w-full cursor-grab rounded-xl text-left transition-all active:cursor-grabbing {selectedDocId ===
 						doc.id
-							? 'bg-zinc-100 text-zinc-900 shadow-2xs'
-							: 'text-zinc-700 hover:bg-zinc-50/90'}"
+							? 'bg-[var(--bg-surface-subtle)] text-[var(--text-primary)] shadow-2xs font-medium'
+							: 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)]/60'}"
 					>
 						<button
 							type="button"
@@ -519,8 +519,8 @@
 							<div class="flex items-center justify-between gap-1.5">
 								<span
 									class="truncate text-sm font-semibold {selectedDocId === doc.id
-										? 'text-zinc-900'
-										: 'text-zinc-800'}"
+										? 'text-[var(--text-primary)]'
+										: 'text-[var(--text-secondary)]'}"
 								>
 									{doc.title}
 								</span>
@@ -549,7 +549,7 @@
 	<!-- Main Canvas: Toggle antara Folder Index View dan Document Editor -->
 	{#if folderStore.viewMode === 'folder-index' && folderStore.selectedFolder}
 		<div
-			class="flex flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-zinc-900/5"
+			class="flex flex-1 flex-col overflow-hidden rounded-2xl bg-[var(--bg-surface)] shadow-card ring-1 ring-zinc-900/5 dark:ring-zinc-800"
 		>
 			<FolderIndexView
 				{documents}
@@ -563,12 +563,12 @@
 	{:else}
 		<!-- Main Editor Canvas -->
 		<div
-			class="flex flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-zinc-900/5"
+			class="flex flex-1 flex-col overflow-hidden rounded-2xl bg-[var(--bg-surface)] shadow-card ring-1 ring-zinc-900/5 dark:ring-zinc-800"
 		>
 			{#if currentDoc}
 				<!-- Editor Header / Metadata Bar -->
 				<div
-					class="flex min-h-[50px] items-center justify-between border-b border-zinc-200/80 bg-zinc-50/60 px-6 py-2.5 backdrop-blur-sm"
+					class="flex min-h-[50px] items-center justify-between border-b border-[var(--border-app)] bg-[var(--bg-surface-subtle)]/60 px-6 py-2.5 backdrop-blur-sm"
 				>
 					<!-- Left side: Document slug & Save Indicator -->
 					<div class="flex min-w-0 items-center gap-3">
@@ -686,7 +686,7 @@
 							type="button"
 							onclick={() => saveDocument()}
 							disabled={isSaving}
-							class="cursor-pointer rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-2xs transition-all hover:border-zinc-300 hover:bg-zinc-50 active:scale-[0.98] disabled:opacity-50"
+							class="cursor-pointer rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] shadow-2xs transition-all hover:border-zinc-400 active:scale-[0.98] disabled:opacity-50"
 						>
 							{isSaving ? 'Menyimpan...' : 'Simpan'}
 						</button>
@@ -703,7 +703,7 @@
 								bind:value={editorTitle}
 								oninput={() => handleContentChange(editorContent)}
 								placeholder="Judul Catatan..."
-								class="w-full border-0 bg-transparent p-0 text-2xl font-bold tracking-tight text-zinc-900 placeholder-zinc-300 focus:outline-none focus:ring-0 sm:text-3xl"
+								class="w-full border-0 bg-transparent p-0 text-2xl font-bold tracking-tight text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-0 sm:text-3xl"
 							/>
 						</div>
 

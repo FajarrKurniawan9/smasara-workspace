@@ -25,10 +25,10 @@
 
 {#if editor}
 	<div
-		class="sticky top-0 z-10 flex flex-wrap items-center gap-1.5 border-b border-zinc-200/80 bg-white/90 px-3.5 py-2 backdrop-blur-md"
+		class="sticky top-0 z-10 flex flex-wrap items-center gap-1.5 border-b border-[var(--border-app)] bg-[var(--bg-surface)] px-3.5 py-2 backdrop-blur-md"
 	>
 		<!-- Text Style / Headings -->
-		<div class="flex items-center gap-1 border-r border-zinc-200/80 pr-2">
+		<div class="flex items-center gap-1 border-r border-[var(--border-app-subtle)] pr-2">
 			<button
 				type="button"
 				onclick={() => editor?.chain().focus().setParagraph().run()}

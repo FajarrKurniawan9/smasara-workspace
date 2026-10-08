@@ -5,6 +5,9 @@
 @theme {
 	--font-sans:
 		'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	--font-serif: 'Merriweather', Georgia, Cambria, 'Times New Roman', Times, serif;
+	--font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
 	--color-primary-50: #f0f5ff;
 	--color-primary-100: #e5edff;
 	--color-primary-500: #3b82f6;
@@ -20,30 +23,87 @@
 	--shadow-card: 0 12px 32px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02);
 }
 
+:root {
+	--bg-app: #fafafa;
+	--bg-surface: #ffffff;
+	--bg-surface-subtle: #f4f4f5;
+	--border-app: #e4e4e7;
+	--border-app-subtle: #f4f4f5;
+	--text-primary: #18181b;
+	--text-secondary: #71717a;
+	--text-muted: #a1a1aa;
+	--editor-font: var(--font-sans);
+}
+
+html[data-theme='dark'] {
+	--bg-app: #09090b;
+	--bg-surface: #121215;
+	--bg-surface-subtle: #18181b;
+	--border-app: #27272a;
+	--border-app-subtle: #1f1f23;
+	--text-primary: #f4f4f5;
+	--text-secondary: #a1a1aa;
+	--text-muted: #71717a;
+}
+
+html[data-theme='normal'] {
+	/* Warm Sepia / Cream Literary Aesthetic */
+	--bg-app: #fbf7ee;
+	--bg-surface: #f7f0e1;
+	--bg-surface-subtle: #eee5d3;
+	--border-app: #e4d7c0;
+	--border-app-subtle: #ecd9bd;
+	--text-primary: #2d261e;
+	--text-secondary: #6e6150;
+	--text-muted: #9b8c78;
+}
+
+html[data-font='sans'] {
+	--editor-font: var(--font-sans);
+}
+
+html[data-font='serif'] {
+	--editor-font: var(--font-serif);
+}
+
+html[data-font='mono'] {
+	--editor-font: var(--font-mono);
+}
+
 @layer base {
 	body {
-		@apply bg-zinc-50 text-zinc-900 antialiased selection:bg-primary-100 selection:text-primary-700;
+		background-color: var(--bg-app);
+		color: var(--text-primary);
+		font-family: var(--font-sans);
+		transition:
+			background-color 0.2s ease,
+			color 0.2s ease;
+		@apply antialiased selection:bg-primary-100 selection:text-primary-700;
 	}
 }
 
+.smasara-editor-content {
+	font-family: var(--editor-font) !important;
+}
+
 @layer components {
-	/* Form Inputs (clean, no heavy ring) */
+	/* Form Inputs */
 	.input-smasara {
-		@apply mt-1 block w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 shadow-input transition-all placeholder:text-zinc-400 hover:border-zinc-300 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/5 focus:outline-none;
+		@apply mt-1 block w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 shadow-input transition-all placeholder:text-zinc-400 hover:border-zinc-300 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-900/5 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-100;
 	}
 
-	/* Buttons (solid dark aesthetic) */
+	/* Buttons */
 	.btn-primary {
-		@apply flex w-full justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-zinc-800 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+		@apply flex w-full justify-center rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-zinc-800 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200;
 	}
 
-	/* Button Ghost (transparent with subtle hover and active state) */
+	/* Button Ghost */
 	.btn-ghost {
-		@apply inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium text-zinc-700 transition-all hover:bg-zinc-100/80 hover:text-zinc-900 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+		@apply inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium text-zinc-700 transition-all hover:bg-zinc-100/80 hover:text-zinc-900 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 dark:text-zinc-300 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-100;
 	}
 
 	/* Cards */
 	.card-smasara {
-		@apply rounded-2xl bg-white p-8 shadow-card ring-1 ring-zinc-900/5;
+		@apply rounded-2xl bg-white p-8 shadow-card ring-1 ring-zinc-900/5 dark:bg-zinc-900 dark:ring-zinc-800;
 	}
 }

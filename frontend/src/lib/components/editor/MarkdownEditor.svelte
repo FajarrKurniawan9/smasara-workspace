@@ -68,7 +68,7 @@
 			editorProps: {
 				attributes: {
 					class:
-						'prose prose-emerald max-w-none focus:outline-none min-h-[350px] p-6 text-gray-800 leading-relaxed font-sans'
+						'prose prose-emerald dark:prose-invert max-w-none focus:outline-none min-h-[350px] p-6 text-[var(--text-primary)] leading-relaxed smasara-editor-content'
 				},
 				handleClick: (view, pos, event) => {
 					const target = event.target as HTMLElement | null;
@@ -162,7 +162,7 @@
 </script>
 
 <div
-	class="relative flex flex-col rounded-xl border border-gray-200 bg-white shadow-xs overflow-hidden"
+	class="relative flex flex-col rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] shadow-xs overflow-hidden transition-colors"
 >
 	{#if editable}
 		<EditorToolbar {editor} onInsertWikilink={openWikilinkModal} />

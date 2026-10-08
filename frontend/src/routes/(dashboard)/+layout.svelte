@@ -8,11 +8,14 @@
 	import CreateWorkspaceModal from '$lib/components/workspace/CreateWorkspaceModal.svelte';
 	import { FolderTree } from '$lib/components/folder';
 	import { SearchPalette } from '$lib/components/search';
+	import { ThemeSettingsModal } from '$lib/components/common';
+	import { themeStore } from '$lib/stores/theme.svelte';
 
 	let { children } = $props();
 	let isLoggingOut = $state(false);
 	let isCreateWsModalOpen = $state(false);
 	let isSearchOpen = $state(false);
+	let isThemeModalOpen = $state(false);
 
 	function handleSearchSelect(docId: string) {
 		window.dispatchEvent(new CustomEvent('search-select', { detail: { id: docId } }));
@@ -45,14 +48,14 @@
 	}
 </script>
 
-<div class="flex h-screen overflow-hidden bg-zinc-50 text-zinc-900">
+<div class="flex h-screen overflow-hidden bg-[var(--bg-app)] text-[var(--text-primary)]">
 	<!-- Sidebar -->
 	<aside
-		class="hidden w-64 flex-shrink-0 flex-col border-r border-zinc-200/80 bg-white/80 backdrop-blur-md md:flex"
+		class="hidden w-64 flex-shrink-0 flex-col border-r border-[var(--border-app)] bg-[var(--bg-surface)] backdrop-blur-md md:flex"
 	>
 		<!-- Logo / Brand -->
 		<div
-			class="flex h-16 items-center justify-between border-b border-zinc-200/80 px-6 font-semibold tracking-tight text-zinc-900"
+			class="flex h-16 items-center justify-between border-b border-[var(--border-app)] px-6 font-semibold tracking-tight text-[var(--text-primary)]"
 		>
 			<span class="flex items-center gap-2.5">
 				<span
@@ -60,12 +63,14 @@
 				>
 					S
 				</span>
-				<span class="text-base font-semibold tracking-tight text-zinc-900">Smasara</span>
+				<span class="text-base font-semibold tracking-tight text-[var(--text-primary)]"
+					>Smasara</span
+				>
 			</span>
 		</div>
 
 		<!-- Workspace Selector & Management -->
-		<div class="border-b border-zinc-100 p-3 bg-zinc-50/60">
+		<div class="border-b border-[var(--border-app-subtle)] p-3 bg-[var(--bg-surface-subtle)]">
 			<div class="mb-2 flex items-center justify-between px-1">
 				<span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
 					Workspace
@@ -84,7 +89,7 @@
 			{#if workspaceStore.workspaces.length > 0}
 				<select
 					bind:value={workspaceStore.currentWorkspaceId}
-					class="w-full truncate rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-800 shadow-input transition-all hover:border-zinc-300 focus:border-zinc-900 focus:outline-none focus:ring-4 focus:ring-zinc-900/5"
+					class="w-full truncate rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-3 py-2 text-xs font-medium text-[var(--text-primary)] shadow-input transition-all hover:border-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-900/5 dark:focus:ring-zinc-100/5"
 				>
 					{#each workspaceStore.workspaces as ws (ws.id)}
 						<option value={ws.id}>
@@ -110,11 +115,28 @@
 		</div>
 
 		<!-- Logout Button -->
-		<div class="border-t border-zinc-200/80 p-3">
+		<div class="border-t border-[var(--border-app)] p-3 space-y-2">
+			<button
+				type="button"
+				onclick={() => (isThemeModalOpen = true)}
+				class="flex w-full items-center justify-between rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-3 py-2 text-xs font-medium text-[var(--text-secondary)] transition-all hover:border-zinc-400 hover:text-[var(--text-primary)] active:scale-[0.98]"
+				title="Atur Tema & Tipografi"
+				data-testid="theme-settings-sidebar-btn"
+			>
+				<span class="flex items-center gap-2">
+					<span
+						>{themeStore.mode === 'dark' ? '🌙' : themeStore.mode === 'normal' ? '📜' : '☀️'}</span
+					>
+					<span>Tema & Font</span>
+				</span>
+				<span class="text-[10px] uppercase font-semibold opacity-60">
+					{themeStore.mode}
+				</span>
+			</button>
 			<button
 				onclick={handleLogout}
 				disabled={isLoggingOut}
-				class="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-100/80 px-3 py-2 text-xs font-medium text-zinc-700 transition-all hover:bg-red-50 hover:text-red-600 active:scale-[0.98] disabled:opacity-50"
+				class="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--bg-surface-subtle)] px-3 py-2 text-xs font-medium text-[var(--text-secondary)] transition-all hover:bg-red-500/10 hover:text-red-500 active:scale-[0.98] disabled:opacity-50"
 			>
 				{isLoggingOut ? 'Keluar...' : 'Logout'}
 			</button>
@@ -125,10 +147,12 @@
 	<div class="flex flex-1 flex-col overflow-hidden">
 		<!-- Topbar -->
 		<header
-			class="flex h-16 items-center justify-between border-b border-zinc-200/80 bg-white/80 px-6 backdrop-blur-md"
+			class="flex h-16 items-center justify-between border-b border-[var(--border-app)] bg-[var(--bg-surface)] px-6 backdrop-blur-md"
 		>
 			<div class="flex items-center md:hidden">
-				<span class="text-base font-semibold tracking-tight text-zinc-900">Smasara</span>
+				<span class="text-base font-semibold tracking-tight text-[var(--text-primary)]"
+					>Smasara</span
+				>
 			</div>
 
 			<div class="hidden items-center gap-2 text-xs text-zinc-500 md:flex">
@@ -148,7 +172,7 @@
 					<button
 						type="button"
 						onclick={() => (isSearchOpen = true)}
-						class="flex w-full max-w-md cursor-text items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50/80 px-3.5 py-2 text-sm text-zinc-500 shadow-input transition-all hover:border-zinc-300 hover:bg-white active:scale-[0.99] focus:border-zinc-900 focus:outline-none focus:ring-4 focus:ring-zinc-900/5"
+						class="flex w-full max-w-md cursor-text items-center justify-between rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface-subtle)] px-3.5 py-2 text-sm text-[var(--text-secondary)] shadow-input transition-all hover:border-zinc-400 hover:text-[var(--text-primary)] active:scale-[0.99]"
 						title="Cari Catatan (Cmd/Ctrl + K)"
 					>
 						<div class="flex items-center gap-2.5">
@@ -182,6 +206,18 @@
 			</div>
 
 			<div class="flex items-center space-x-2">
+				<button
+					type="button"
+					onclick={() => (isThemeModalOpen = true)}
+					class="flex items-center gap-1.5 rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--text-secondary)] shadow-input transition-all hover:border-zinc-400 hover:text-[var(--text-primary)] active:scale-[0.98]"
+					title="Pengaturan Tema & Tipografi"
+					aria-label="Pengaturan Tema & Tipografi"
+					data-testid="theme-settings-header-btn"
+				>
+					<span class="text-sm"
+						>{themeStore.mode === 'dark' ? '🌙' : themeStore.mode === 'normal' ? '📜' : '☀️'}</span
+					>
+				</button>
 				{#if workspaceStore.currentWorkspace}
 					<button
 						type="button"
@@ -208,7 +244,7 @@
 				{#if auth.username}
 					<a
 						href="/@{auth.username}"
-						class="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 shadow-input transition-all hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 active:scale-[0.98]"
+						class="flex items-center gap-1.5 rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] shadow-input transition-all hover:border-zinc-400 hover:text-[var(--text-primary)] active:scale-[0.98]"
 						title="Lihat Profil Publik"
 					>
 						<svg
@@ -236,7 +272,7 @@
 		</header>
 
 		<!-- Main Content Scrollable Area -->
-		<main class="flex-1 overflow-y-auto p-6 bg-zinc-50">
+		<main class="flex-1 overflow-y-auto p-6 bg-[var(--bg-app)]">
 			{@render children()}
 		</main>
 	</div>
@@ -250,3 +286,5 @@
 />
 
 <SearchPalette bind:isOpen={isSearchOpen} onSelect={handleSearchSelect} />
+
+<ThemeSettingsModal isOpen={isThemeModalOpen} onClose={() => (isThemeModalOpen = false)} />
