@@ -180,7 +180,7 @@
 
 <style>
 	:global(.tiptap p.is-editor-empty:first-child::before) {
-		color: #9ca3af;
+		color: var(--text-muted);
 		content: attr(data-placeholder);
 		float: left;
 		height: 0;
@@ -191,28 +191,34 @@
 		border-left: 3px solid #10b981;
 		padding-left: 1rem;
 		font-style: italic;
-		color: #4b5563;
+		color: var(--text-secondary);
 	}
 
 	:global(.tiptap pre) {
-		background: #1f2937;
-		color: #f3f4f6;
-		font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+		background: var(--bg-surface-subtle);
+		border: 1px solid var(--border-app);
+		color: var(--text-primary);
+		font-family: var(--font-mono, ui-monospace, monospace);
 		padding: 0.75rem 1rem;
 		border-radius: 0.5rem;
 		font-size: 0.875rem;
 	}
 
 	:global(.tiptap code) {
-		background-color: #f3f4f6;
-		padding: 0.15rem 0.3rem;
-		border-radius: 0.25rem;
+		background-color: var(--bg-surface-subtle);
+		color: var(--text-primary);
+		border: 1px solid var(--border-app);
+		padding: 0.15rem 0.35rem;
+		border-radius: 0.375rem;
 		font-size: 0.85em;
-		font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-weight: 500;
 	}
 
 	:global(.tiptap pre code) {
 		background: transparent;
+		border: none;
+		color: inherit;
 		padding: 0;
 	}
 </style>
