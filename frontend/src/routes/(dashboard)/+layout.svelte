@@ -206,6 +206,19 @@
 			</div>
 
 			<div class="flex items-center space-x-2">
+				{#if workspaceStore.currentWorkspace}
+					<button
+						type="button"
+						onclick={() => folderStore.openGraphView()}
+						class="flex items-center gap-1.5 rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--text-secondary)] shadow-input transition-all hover:border-zinc-400 hover:text-[var(--text-primary)] active:scale-[0.98]"
+						title="Buka Graf Relasi Workspace"
+						aria-label="Buka Graf Relasi Workspace"
+						data-testid="workspace-graph-btn"
+					>
+						<span class="text-sm">🕸️</span>
+						<span class="hidden sm:inline">Graf</span>
+					</button>
+				{/if}
 				<button
 					type="button"
 					onclick={() => (isThemeModalOpen = true)}

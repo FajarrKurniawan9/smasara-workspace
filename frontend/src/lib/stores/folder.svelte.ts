@@ -5,7 +5,7 @@ class FolderStore {
 	folders = $state<FolderItem[]>([]);
 	selectedFolderId = $state<string | null>(null);
 	selectedFolderDetail = $state<FolderDetail | null>(null);
-	viewMode = $state<'document' | 'folder-index'>('document');
+	viewMode = $state<'document' | 'folder-index' | 'graph'>('document');
 	filterMode = $state<'all' | 'folder' | 'uncategorized'>('all');
 	expandedFolderIds = new SvelteSet<string>();
 	isLoading = $state(false);
@@ -158,6 +158,10 @@ class FolderStore {
 
 	openDocumentEditor() {
 		this.viewMode = 'document';
+	}
+
+	openGraphView() {
+		this.viewMode = 'graph';
 	}
 
 	async loadFolderDetail(workspaceId: string, folderId: string) {

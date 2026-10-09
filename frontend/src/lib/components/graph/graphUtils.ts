@@ -1,4 +1,4 @@
-import type { PublicDocumentItem } from '$lib/types';
+// frontend/src/lib/components/graph/graphUtils.ts
 import type { FolderColor, GraphData, GraphLink, GraphNode } from './types';
 
 export const FOLDER_PALETTE: FolderColor[] = [
@@ -48,10 +48,19 @@ export function getExcerpt(content: string | null, maxLength = 150): string {
 	return plain.slice(0, maxLength).trim() + '...';
 }
 
+export interface BaseGraphDocumentItem {
+	id: string;
+	title: string;
+	slug: string;
+	folder_name?: string | null;
+	content?: string | null;
+	published_at?: string | null;
+}
+
 /**
- * Susun dataset graf berarah dari daftar dokumen publik (dibatasi max 100 node sesuai spesifikasi T-503).
+ * Susun dataset graf berarah dari daftar dokumen (publik atau internal).
  */
-export function buildGraphData(documents: PublicDocumentItem[]): GraphData {
+export function buildGraphData(documents: BaseGraphDocumentItem[]): GraphData {
 	// Batasi maksimal 100 node
 	const cappedDocs = (documents || []).slice(0, 100);
 
@@ -75,9 +84,9 @@ export function buildGraphData(documents: PublicDocumentItem[]): GraphData {
 	}
 
 	// Buat index pencarian untuk resolusi wikilink [[slug]] atau [[title]]
-	const docBySlug = new Map<string, PublicDocumentItem>();
-	const docByTitle = new Map<string, PublicDocumentItem>();
-	const docById = new Map<string, PublicDocumentItem>();
+	const docBySlug = new Map<string, BaseGraphDocumentItem>();
+	const docByTitle = new Map<string, BaseGraphDocumentItem>();
+	const docById = new Map<string, BaseGraphDocumentItem>();
 
 	for (const doc of cappedDocs) {
 		docById.set(doc.id, doc);
@@ -130,9 +139,9 @@ export function buildGraphData(documents: PublicDocumentItem[]): GraphData {
 			id: doc.id,
 			title: doc.title,
 			slug: doc.slug,
-			folder_name: doc.folder_name,
-			content: doc.content,
-			published_at: doc.published_at,
+			folder_name: doc.folder_name ?? null,
+			content: doc.content ?? null,
+			published_at: doc.published_at ?? null,
 			icon: extractFirstEmoji(doc.title),
 			color,
 			connections: connectionCounts.get(doc.id) || 0
@@ -147,4 +156,36 @@ export function buildGraphData(documents: PublicDocumentItem[]): GraphData {
 	}));
 
 	return { nodes, links, folders };
+}
+
+/**
+ * Susun dataset graf relasional untuk workspace internal dari DocumentItem[] dan FolderItem[].
+ * Mencakup seluruh dokumen aktif di workspace (baik privat, shared, maupun publik).
+ */
+export function buildWorkspaceGraphData(
+	documents: Array<{
+		id: string;
+		title: string;
+		slug?: string;
+		content?: string | null;
+		folder_id?: string | null;
+		published_at?: string | null;
+	}>,
+	foldersList: Array<{ id: string; name: string }> = []
+): GraphData {
+	const folderNameById = new Map<string, string>();
+	for (const f of foldersList) {
+		folderNameById.set(f.id, f.name);
+	}
+
+	const mappedDocs: BaseGraphDocumentItem[] = (documents || []).map((d) => ({
+		id: d.id,
+		title: d.title,
+		slug: d.slug || d.id,
+		content: d.content || null,
+		folder_name: d.folder_id ? folderNameById.get(d.folder_id) || 'Folder Lain' : null,
+		published_at: d.published_at || null
+	}));
+
+	return buildGraphData(mappedDocs);
 }

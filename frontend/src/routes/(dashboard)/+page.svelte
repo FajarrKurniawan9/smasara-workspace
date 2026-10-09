@@ -10,6 +10,7 @@
 	import ConflictModal from '$lib/components/editor/ConflictModal.svelte';
 	import { FolderIndexView } from '$lib/components/folder';
 	import { DocumentStatusBadge, RelatedNotesPanel } from '$lib/components/document';
+	import { WorkspaceGraphView } from '$lib/components/graph';
 	import type { RelatedNoteItem } from '$lib/types';
 	let documents: DocumentItem[] = $state([]);
 	let selectedDocId = $state<string | null>(null);
@@ -547,7 +548,21 @@
 
 	<!-- Main Editor Canvas -->
 	<!-- Main Canvas: Toggle antara Folder Index View dan Document Editor -->
-	{#if folderStore.viewMode === 'folder-index' && folderStore.selectedFolder}
+	{#if folderStore.viewMode === 'graph'}
+		<div
+			class="flex flex-1 flex-col overflow-hidden rounded-2xl bg-[var(--bg-surface)] shadow-card ring-1 ring-zinc-900/5 dark:ring-zinc-800"
+		>
+			<WorkspaceGraphView
+				{documents}
+				folders={folderStore.folders}
+				onSelectDocument={(doc) => {
+					folderStore.openDocumentEditor();
+					selectDocument(doc);
+				}}
+				onClose={() => folderStore.openDocumentEditor()}
+			/>
+		</div>
+	{:else if folderStore.viewMode === 'folder-index' && folderStore.selectedFolder}
 		<div
 			class="flex flex-1 flex-col overflow-hidden rounded-2xl bg-[var(--bg-surface)] shadow-card ring-1 ring-zinc-900/5 dark:ring-zinc-800"
 		>
