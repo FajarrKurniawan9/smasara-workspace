@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-
+	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 
 	// Import package database buatan lu sendiri
 	"github.com/FajarrKurniawan9/smasara-backend/internal/database"
@@ -36,8 +37,18 @@ func main() {
 	workspaceHandler := &handlers.WorkspaceHandler{DB: queries}
 	folderHandler := &handlers.FolderHandler{DB: queries}
 	docHandler := &handlers.DocumentHandler{DB: queries}
-	// 2. Inisialisasi Mesin Fiber
-	app := fiber.New()
+	
+	// 2. Inisialisasi Mesin Fiber (Hardened Configuration)
+	app := fiber.New(fiber.Config{
+		ReadTimeout:           10 * time.Second, // Mencegah serangan Slowloris
+		WriteTimeout:          10 * time.Second,
+		IdleTimeout:           30 * time.Second,
+		DisableStartupMessage: true,             // Hapus banner bawaan agar tidak menebar informasi server
+	})
+
+	// --- SETUP RECOVER & HELMET (Sabuk Pengaman Fiber) ---
+	app.Use(recover.New()) // Mencegah server mati total bila terjadi Panic
+	app.Use(helmet.New())  // Menyuntikkan Security Headers (CSP, Anti-Clickjacking)
 
 	// 3. Bikin 1 Endpoint Test (Route)
 	app.Get("/", func(c *fiber.Ctx) error {
