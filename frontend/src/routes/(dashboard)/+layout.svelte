@@ -59,9 +59,21 @@
 		>
 			<span class="flex items-center gap-2.5">
 				<span
-					class="flex h-7 w-7 items-center justify-center rounded-xl bg-zinc-900 text-xs font-bold text-white shadow-input"
+					class="flex h-7 w-7 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-input dark:bg-zinc-100 dark:text-zinc-900"
 				>
-					S
+					<svg
+						class="h-4 w-4"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+						/>
+					</svg>
 				</span>
 				<span class="text-base font-semibold tracking-tight text-[var(--text-primary)]"
 					>Smasara</span
@@ -124,9 +136,50 @@
 				data-testid="theme-settings-sidebar-btn"
 			>
 				<span class="flex items-center gap-2">
-					<span
-						>{themeStore.mode === 'dark' ? '🌙' : themeStore.mode === 'normal' ? '📜' : '☀️'}</span
-					>
+					{#if themeStore.mode === 'dark'}
+						<svg
+							class="h-4 w-4"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							stroke-width="1.75"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+							/>
+						</svg>
+					{:else if themeStore.mode === 'normal'}
+						<svg
+							class="h-4 w-4"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							stroke-width="1.75"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+							/>
+						</svg>
+					{:else}
+						<svg
+							class="h-4 w-4"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							stroke-width="1.75"
+						>
+							<circle cx="12" cy="12" r="4" stroke-linecap="round" stroke-linejoin="round" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+							/>
+						</svg>
+					{/if}
 					<span>Tema & Font</span>
 				</span>
 				<span class="text-[10px] uppercase font-semibold opacity-60">
@@ -215,7 +268,22 @@
 						aria-label="Buka Graf Relasi Workspace"
 						data-testid="workspace-graph-btn"
 					>
-						<span class="text-sm">🕸️</span>
+						<svg
+							class="h-3.5 w-3.5"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							stroke-width="1.75"
+						>
+							<circle cx="6" cy="6" r="2.5" />
+							<circle cx="18" cy="8" r="2.5" />
+							<circle cx="12" cy="18" r="2.5" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M8.2 7.2l7.6 1.6M7.2 8.2l3.6 7.6M16.8 9.8l-3.6 6"
+							/>
+						</svg>
 						<span class="hidden sm:inline">Graf</span>
 					</button>
 				{/if}
@@ -227,9 +295,50 @@
 					aria-label="Pengaturan Tema & Tipografi"
 					data-testid="theme-settings-header-btn"
 				>
-					<span class="text-sm"
-						>{themeStore.mode === 'dark' ? '🌙' : themeStore.mode === 'normal' ? '📜' : '☀️'}</span
-					>
+					{#if themeStore.mode === 'dark'}
+						<svg
+							class="h-4 w-4"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							stroke-width="1.75"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+							/>
+						</svg>
+					{:else if themeStore.mode === 'normal'}
+						<svg
+							class="h-4 w-4"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							stroke-width="1.75"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+							/>
+						</svg>
+					{:else}
+						<svg
+							class="h-4 w-4"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							stroke-width="1.75"
+						>
+							<circle cx="12" cy="12" r="4" stroke-linecap="round" stroke-linejoin="round" />
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+							/>
+						</svg>
+					{/if}
 				</button>
 				{#if workspaceStore.currentWorkspace}
 					<button

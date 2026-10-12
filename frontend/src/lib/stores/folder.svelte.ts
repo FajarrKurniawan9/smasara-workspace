@@ -5,7 +5,7 @@ class FolderStore {
 	folders = $state<FolderItem[]>([]);
 	selectedFolderId = $state<string | null>(null);
 	selectedFolderDetail = $state<FolderDetail | null>(null);
-	viewMode = $state<'document' | 'folder-index' | 'graph'>('document');
+	viewMode = $state<'document' | 'folder-index' | 'graph' | 'trash'>('document');
 	filterMode = $state<'all' | 'folder' | 'uncategorized'>('all');
 	expandedFolderIds = new SvelteSet<string>();
 	isLoading = $state(false);
@@ -117,9 +117,14 @@ class FolderStore {
 			method: 'DELETE'
 		});
 
-		this.folders = this.folders.filter((f) => f.id !== folderId && f.parent_id !== folderId);
-		if (this.selectedFolderId === folderId) {
+		await this.loadFolders(workspaceId);
+		if (this.selectedFolderId && !this.folders.some((f) => f.id === this.selectedFolderId)) {
 			this.selectedFolderId = null;
+			this.selectedFolderDetail = null;
+			this.filterMode = 'all';
+			if (this.viewMode === 'folder-index') {
+				this.viewMode = 'document';
+			}
 		}
 	}
 
@@ -142,11 +147,17 @@ class FolderStore {
 	selectFolder(folderId: string | null) {
 		this.selectedFolderId = folderId;
 		this.filterMode = folderId ? 'folder' : 'all';
+		if (this.viewMode === 'trash') {
+			this.viewMode = 'document';
+		}
 	}
 
 	setUncategorizedFilter() {
 		this.selectedFolderId = null;
 		this.filterMode = 'uncategorized';
+		if (this.viewMode === 'trash') {
+			this.viewMode = 'document';
+		}
 	}
 
 	async openFolderIndex(workspaceId: string, folderId: string) {
@@ -162,6 +173,12 @@ class FolderStore {
 
 	openGraphView() {
 		this.viewMode = 'graph';
+	}
+
+	openTrashView() {
+		this.viewMode = 'trash';
+		this.selectedFolderId = null;
+		this.filterMode = 'all';
 	}
 
 	async loadFolderDetail(workspaceId: string, folderId: string) {

@@ -7,11 +7,13 @@
 	let {
 		node,
 		depth = 0,
-		onAddSubfolder
+		onAddSubfolder,
+		onDeleteFolder
 	}: {
 		node: FolderTreeNode;
 		depth?: number;
 		onAddSubfolder: (parent: FolderItem) => void;
+		onDeleteFolder: (folder: FolderItem) => void;
 	} = $props();
 
 	let hasChildren = $derived(node.children.length > 0);
@@ -173,6 +175,26 @@
 			>
 				<span class="text-xs leading-none font-bold">+</span>
 			</button>
+			<button
+				type="button"
+				onclick={(e) => {
+					e.stopPropagation();
+					onDeleteFolder(node);
+				}}
+				title="Hapus folder"
+				aria-label={`Hapus folder ${node.name}`}
+				data-testid={`delete-folder-btn-${node.id}`}
+				class="w-4 h-4 flex items-center justify-center rounded text-gray-400 hover:text-red-600 hover:bg-red-100/60 cursor-pointer"
+			>
+				<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+					/>
+				</svg>
+			</button>
 		</div>
 	</div>
 
@@ -180,7 +202,7 @@
 	{#if hasChildren && isExpanded}
 		<div class="space-y-0.5 mt-0.5">
 			{#each node.children as child (child.id)}
-				<FolderTreeItem node={child} depth={depth + 1} {onAddSubfolder} />
+				<FolderTreeItem node={child} depth={depth + 1} {onAddSubfolder} {onDeleteFolder} />
 			{/each}
 		</div>
 	{/if}

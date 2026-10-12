@@ -11,6 +11,7 @@
 	import { FolderIndexView } from '$lib/components/folder';
 	import { DocumentStatusBadge, RelatedNotesPanel } from '$lib/components/document';
 	import { WorkspaceGraphView } from '$lib/components/graph';
+	import { TrashView } from '$lib/components/trash';
 	import type { RelatedNoteItem } from '$lib/types';
 	let documents: DocumentItem[] = $state([]);
 	let selectedDocId = $state<string | null>(null);
@@ -109,6 +110,38 @@
 		};
 	});
 
+	// Listener untuk pemulihan dokumen dari Recycle Bin
+	$effect(() => {
+		const handleRestored = async (e: Event) => {
+			const custom = e as CustomEvent<{ document: DocumentItem }>;
+			const doc = custom.detail?.document;
+			if (doc) {
+				documents = [doc, ...documents.filter((d) => d.id !== doc.id)];
+			}
+			const wsId = workspaceStore.currentWorkspaceId;
+			if (wsId) {
+				await loadDocuments(wsId);
+			}
+		};
+		window.addEventListener('documentrestored', handleRestored);
+		return () => {
+			window.removeEventListener('documentrestored', handleRestored);
+		};
+	});
+
+	// Listener untuk penghapusan folder (refresh daftar dokumen)
+	$effect(() => {
+		const handleFolderDeleted = async () => {
+			const wsId = workspaceStore.currentWorkspaceId;
+			if (wsId) {
+				await loadDocuments(wsId);
+			}
+		};
+		window.addEventListener('folderdeleted', handleFolderDeleted);
+		return () => {
+			window.removeEventListener('folderdeleted', handleFolderDeleted);
+		};
+	});
 	// Listener untuk pencarian (SearchPalette)
 	$effect(() => {
 		const handleSearch = async (e: Event) => {
@@ -218,6 +251,9 @@
 						});
 				}
 			}
+		}
+		if (folderStore.viewMode === 'trash') {
+			folderStore.openDocumentEditor();
 		}
 		selectedDocId = doc.id;
 		currentDoc = doc;
@@ -654,6 +690,20 @@
 				onClose={() => folderStore.openDocumentEditor()}
 			/>
 		</div>
+	{:else if folderStore.viewMode === 'trash'}
+		<div
+			class="flex flex-1 flex-col overflow-hidden rounded-2xl bg-[var(--bg-surface)] shadow-card ring-1 ring-zinc-900/5 dark:ring-zinc-800"
+		>
+			<TrashView
+				onDocumentRestored={async (doc) => {
+					documents = [doc, ...documents.filter((d) => d.id !== doc.id)];
+					const wsId = workspaceStore.currentWorkspaceId;
+					if (wsId) {
+						await loadDocuments(wsId);
+					}
+				}}
+			/>
+		</div>
 	{:else if folderStore.viewMode === 'folder-index' && folderStore.selectedFolder}
 		<div
 			class="flex flex-1 flex-col overflow-hidden rounded-2xl bg-[var(--bg-surface)] shadow-card ring-1 ring-zinc-900/5 dark:ring-zinc-800"
@@ -994,7 +1044,10 @@
 			<p class="text-sm text-[var(--text-secondary)] leading-relaxed">
 				Apakah Anda yakin ingin memindahkan catatan <strong
 					class="text-[var(--text-primary)] font-semibold">"{docToDelete.title}"</strong
-				> ke Recycle Bin? Anda dapat memulihkannya nanti jika diperlukan.
+				>
+				ke Recycle Bin? Anda dapat memulihkannya kapan saja melalui menu
+				<strong class="text-[var(--text-primary)] font-semibold">Recycle Bin</strong> di bagian bawah
+				navigasi folder.
 			</p>
 
 			<div class="mt-6 flex items-center justify-end gap-2.5">

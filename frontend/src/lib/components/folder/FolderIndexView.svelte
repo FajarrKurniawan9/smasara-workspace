@@ -5,6 +5,7 @@
 	import type { DocumentItem } from '$lib/types';
 	import { getDocumentStatus } from '$lib/types';
 	import { DocumentStatusBadge } from '$lib/components/document';
+	import DeleteFolderModal from './DeleteFolderModal.svelte';
 	let {
 		documents = [],
 		onSelectDocument,
@@ -19,8 +20,8 @@
 	let indexDoc = $derived(folderStore.selectedFolderDetail?.index_document);
 	let isSettingIndex = $state(false);
 	let selectedDocForIndex = $state('');
-
-	// Dokumen-dokumen yang menjadi anggota folder ini
+	let isDeleteModalOpen = $state(false);
+	let isDeletingFolder = $state(false);
 	let folderDocs = $derived(documents.filter((d) => folder && d.folder_id === folder.id));
 
 	async function handleSetIndex() {
@@ -56,6 +57,25 @@
 		if (!wsId || !folder) return;
 		onCreateDocument();
 	}
+
+	async function handleConfirmDeleteFolder() {
+		const wsId = workspaceStore.currentWorkspaceId;
+		if (!wsId || !folder) return;
+		try {
+			isDeletingFolder = true;
+			await folderStore.deleteFolder(wsId, folder.id);
+			toast.success(`Folder "${folder.name}" berhasil dihapus.`);
+			window.dispatchEvent(new CustomEvent('folderdeleted', { detail: { folderId: folder.id } }));
+			isDeleteModalOpen = false;
+			folderStore.openDocumentEditor();
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : 'Gagal menghapus folder';
+			console.error('Gagal menghapus folder:', err);
+			toast.error(msg);
+		} finally {
+			isDeletingFolder = false;
+		}
+	}
 </script>
 
 <div class="h-full flex flex-col overflow-y-auto p-8 max-w-5xl mx-auto space-y-8">
@@ -79,16 +99,44 @@
 			</h1>
 		</div>
 
-		<button
-			type="button"
-			onclick={() => folderStore.openDocumentEditor()}
-			class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] bg-[var(--bg-surface)] border border-[var(--border-app)] rounded-xl hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] shadow-2xs transition-colors cursor-pointer"
-		>
-			<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-			</svg>
-			<span>Kembali ke Editor</span>
-		</button>
+		<div class="flex items-center gap-2">
+			<button
+				type="button"
+				onclick={() => (isDeleteModalOpen = true)}
+				data-testid="index-delete-folder-btn"
+				class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50/50 dark:bg-red-950/20 dark:text-red-400 border border-red-200/80 dark:border-red-900/60 rounded-xl hover:bg-red-100/70 hover:text-red-700 shadow-2xs transition-colors cursor-pointer"
+			>
+				<svg
+					class="w-3.5 h-3.5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+					stroke-width="2"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+					/>
+				</svg>
+				<span>Hapus Folder</span>
+			</button>
+			<button
+				type="button"
+				onclick={() => folderStore.openDocumentEditor()}
+				class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] bg-[var(--bg-surface)] border border-[var(--border-app)] rounded-xl hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] shadow-2xs transition-colors cursor-pointer"
+			>
+				<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M15 19l-7-7 7-7"
+					/>
+				</svg>
+				<span>Kembali ke Editor</span>
+			</button>
+		</div>
 	</div>
 
 	<!-- Section 1: Folder README (Index Document) -->
@@ -295,3 +343,11 @@
 		{/if}
 	</section>
 </div>
+
+<DeleteFolderModal
+	isOpen={isDeleteModalOpen}
+	folder={folder || null}
+	isDeleting={isDeletingFolder}
+	onClose={() => (isDeleteModalOpen = false)}
+	onConfirm={handleConfirmDeleteFolder}
+/>
