@@ -61,11 +61,13 @@
 	async function handleConfirmDeleteFolder() {
 		const wsId = workspaceStore.currentWorkspaceId;
 		if (!wsId || !folder) return;
+		const folderId = folder.id;
+		const folderName = folder.name;
 		try {
 			isDeletingFolder = true;
-			await folderStore.deleteFolder(wsId, folder.id);
-			toast.success(`Folder "${folder.name}" berhasil dihapus.`);
-			window.dispatchEvent(new CustomEvent('folderdeleted', { detail: { folderId: folder.id } }));
+			await folderStore.deleteFolder(wsId, folderId);
+			toast.success(`Folder "${folderName}" berhasil dihapus.`);
+			window.dispatchEvent(new CustomEvent('folderdeleted', { detail: { folderId } }));
 			isDeleteModalOpen = false;
 			folderStore.openDocumentEditor();
 		} catch (err: unknown) {

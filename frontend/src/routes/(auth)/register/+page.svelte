@@ -43,35 +43,78 @@
 		<button
 			type="button"
 			onclick={() => themeStore.setMode('light')}
-			class="rounded-lg px-2.5 py-1 text-xs transition-colors {themeStore.mode === 'light'
+			class="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs transition-colors {themeStore.mode ===
+			'light'
 				? 'bg-[var(--text-primary)] text-[var(--bg-surface)] font-semibold shadow-2xs'
 				: 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
 			title="Tema Terang (Light)"
 			aria-label="Mode Terang"
 		>
-			☀️ Terang
+			<svg
+				class="h-3.5 w-3.5"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				stroke-width="1.75"
+			>
+				<circle cx="12" cy="12" r="4" stroke-linecap="round" stroke-linejoin="round" />
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+				/>
+			</svg>
+			<span>Terang</span>
 		</button>
 		<button
 			type="button"
 			onclick={() => themeStore.setMode('normal')}
-			class="rounded-lg px-2.5 py-1 text-xs transition-colors {themeStore.mode === 'normal'
+			class="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs transition-colors {themeStore.mode ===
+			'normal'
 				? 'bg-[var(--text-primary)] text-[var(--bg-surface)] font-semibold shadow-2xs'
 				: 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
 			title="Tema Sepia / Normal (Warm)"
 			aria-label="Mode Sepia Normal"
 		>
-			📜 Sepia
+			<svg
+				class="h-3.5 w-3.5"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				stroke-width="1.75"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+				/>
+			</svg>
+			<span>Sepia</span>
 		</button>
 		<button
 			type="button"
 			onclick={() => themeStore.setMode('dark')}
-			class="rounded-lg px-2.5 py-1 text-xs transition-colors {themeStore.mode === 'dark'
+			class="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs transition-colors {themeStore.mode ===
+			'dark'
 				? 'bg-[var(--text-primary)] text-[var(--bg-surface)] font-semibold shadow-2xs'
 				: 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
 			title="Tema Gelap (Dark)"
 			aria-label="Mode Gelap"
 		>
-			🌙 Gelap
+			<svg
+				class="h-3.5 w-3.5"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				stroke-width="1.75"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+				/>
+			</svg>
+			<span>Gelap</span>
 		</button>
 	</div>
 

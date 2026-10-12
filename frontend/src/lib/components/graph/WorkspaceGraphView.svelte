@@ -368,9 +368,24 @@
 		<!-- Left: Informasi Ringkas & Judul -->
 		<div class="flex items-center gap-2.5">
 			<span
-				class="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/10 text-sm font-bold text-emerald-600"
+				class="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600"
 			>
-				🕸️
+				<svg
+					class="h-4 w-4"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+					stroke-width="1.75"
+				>
+					<circle cx="6" cy="6" r="2.5" />
+					<circle cx="18" cy="8" r="2.5" />
+					<circle cx="12" cy="18" r="2.5" />
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M8.2 7.2l7.6 1.6M7.2 8.2l3.6 7.6M16.8 9.8l-3.6 6"
+					/>
+				</svg>
 			</span>
 			<div>
 				<h3 class="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
@@ -491,7 +506,24 @@
 	<div class="relative flex-1 bg-[var(--bg-surface)]">
 		{#if graphData.nodes.length === 0}
 			<div class="flex h-full flex-col items-center justify-center p-8 text-center">
-				<div class="mb-3 rounded-2xl bg-[var(--bg-surface-subtle)] p-4 text-3xl">🕸️</div>
+				<div class="mb-3 rounded-2xl bg-[var(--bg-surface-subtle)] p-4 text-emerald-600">
+					<svg
+						class="h-8 w-8"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						stroke-width="1.75"
+					>
+						<circle cx="6" cy="6" r="2.5" />
+						<circle cx="18" cy="8" r="2.5" />
+						<circle cx="12" cy="18" r="2.5" />
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M8.2 7.2l7.6 1.6M7.2 8.2l3.6 7.6M16.8 9.8l-3.6 6"
+						/>
+					</svg>
+				</div>
 				<h4 class="text-sm font-semibold text-[var(--text-primary)]">
 					Belum Ada Catatan untuk Ditampilkan
 				</h4>

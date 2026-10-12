@@ -42,12 +42,15 @@
 		const wsId = workspaceStore.currentWorkspaceId;
 		if (!wsId) return;
 
+		const targetFolderId = folderToDelete.id;
+		const targetFolderName = folderToDelete.name;
+
 		try {
 			isDeletingFolder = true;
-			await folderStore.deleteFolder(wsId, folderToDelete.id);
-			toast.success(`Folder "${folderToDelete.name}" berhasil dihapus.`);
+			await folderStore.deleteFolder(wsId, targetFolderId);
+			toast.success(`Folder "${targetFolderName}" berhasil dihapus.`);
 			window.dispatchEvent(
-				new CustomEvent('folderdeleted', { detail: { folderId: folderToDelete.id } })
+				new CustomEvent('folderdeleted', { detail: { folderId: targetFolderId } })
 			);
 			isDeleteModalOpen = false;
 			folderToDelete = null;
