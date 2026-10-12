@@ -5,9 +5,10 @@
 	interface Props {
 		editor: Editor | null;
 		onInsertWikilink?: () => void;
+		onInsertLink?: () => void;
 	}
 
-	let { editor, onInsertWikilink }: Props = $props();
+	let { editor, onInsertWikilink, onInsertLink }: Props = $props();
 
 	// Counter reaktif untuk memaksa re-evaluasi editor.isActive(...) saat cursor/selection/transaction berubah
 	let updateTick = $state(0);
@@ -40,18 +41,10 @@
 		}
 	});
 
-	function setLink() {
-		if (!editor) return;
-		const previousUrl = editor.getAttributes('link').href;
-		const url = window.prompt('Masukkan URL:', previousUrl);
-
-		if (url === null) return;
-		if (url === '') {
-			editor.chain().focus().extendMarkRange('link').unsetLink().run();
-			return;
+	function handleLinkClick() {
+		if (onInsertLink) {
+			onInsertLink();
 		}
-
-		editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
 	}
 
 	// Helper aktif dengan dependensi reaktif ke updateTick
@@ -239,7 +232,8 @@
 		<div class="flex items-center gap-1.5 border-r border-[var(--border-app-subtle)] pr-2">
 			<button
 				type="button"
-				onclick={setLink}
+				onclick={handleLinkClick}
+				data-testid="editor-link-btn"
 				class="rounded-lg px-2.5 py-1 text-xs font-medium transition-all active:scale-[0.97] {isItemActive(
 					'link'
 				)
@@ -253,6 +247,7 @@
 			<button
 				type="button"
 				onclick={onInsertWikilink}
+				data-testid="editor-wikilink-btn"
 				class="flex items-center gap-1 rounded-lg border border-[var(--border-app)] bg-[var(--bg-surface-subtle)] px-2.5 py-1 text-xs font-medium text-[var(--text-primary)] shadow-2xs transition-all hover:border-zinc-400 active:scale-[0.97]"
 				title="Sisipkan Wikilink [[catatan]]"
 			>

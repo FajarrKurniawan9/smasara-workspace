@@ -8,7 +8,7 @@
 	import { Wikilink } from './wikilink-extension';
 	import EditorToolbar from './EditorToolbar.svelte';
 	import WikilinkModal from './WikilinkModal.svelte';
-
+	import LinkModal from './LinkModal.svelte';
 	interface Props {
 		content?: string;
 		placeholder?: string;
@@ -30,7 +30,11 @@
 	let element: HTMLDivElement | undefined = $state();
 	let editor: Editor | null = $state(null);
 	let isWikilinkModalOpen = $state(false);
-
+	let isLinkModalOpen = $state(false);
+	let linkModalInitialUrl = $state('');
+	let linkModalInitialText = $state('');
+	let isEditingLink = $state(false);
+	let savedSelection = $state<{ from: number; to: number } | null>(null);
 	onMount(() => {
 		if (!element) return;
 
@@ -40,10 +44,12 @@
 				StarterKit.configure({
 					heading: {
 						levels: [1, 2, 3, 4]
-					}
+					},
+					link: false
 				}),
 				Link.configure({
 					openOnClick: false,
+					isAllowedUri: (url) => Boolean(url),
 					HTMLAttributes: {
 						class: 'text-blue-600 underline hover:text-blue-800'
 					}
@@ -147,6 +153,115 @@
 			.run();
 	}
 
+	function openLinkModal() {
+		if (!editor) return;
+		const hasLink = editor.isActive('link');
+		if (hasLink) {
+			// Perluas seleksi agar melingkupi seluruh mark link saat kursor berada di dalam link
+			editor.chain().extendMarkRange('link').run();
+		}
+		const { from, to } = editor.state.selection;
+		savedSelection = { from, to };
+		const selectedText = editor.state.doc.textBetween(from, to, ' ');
+		const previousUrl = editor.getAttributes('link').href || '';
+
+		linkModalInitialUrl = previousUrl;
+		linkModalInitialText = selectedText;
+		isEditingLink = Boolean(hasLink);
+		isLinkModalOpen = true;
+	}
+
+	function handleSaveLink({ url, text }: { url: string; text: string }) {
+		if (!editor) return;
+
+		let href = url.trim();
+		const hasScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(href);
+		if (href && !hasScheme && !href.startsWith('/') && !href.startsWith('#')) {
+			href = `https://${href}`;
+		}
+
+		if (!href) {
+			handleUnlink();
+			return;
+		}
+
+		const sel = savedSelection ?? editor.state.selection;
+
+		if (isEditingLink) {
+			// Pulihkan dan pastikan seleksi mencakup seluruh mark link yang sedang diedit
+			editor.chain().focus().setTextSelection(sel).extendMarkRange('link').run();
+			const linkSel = editor.state.selection;
+			const currentText = editor.state.doc.textBetween(linkSel.from, linkSel.to, ' ');
+			const newText = text.trim();
+
+			if (!newText || newText === currentText) {
+				editor.chain().setLink({ href }).run();
+			} else {
+				editor
+					.chain()
+					.insertContent({
+						type: 'text',
+						text: newText,
+						marks: [{ type: 'link', attrs: { href } }]
+					})
+					.run();
+			}
+		} else if (sel.from !== sel.to) {
+			const selectedText = editor.state.doc.textBetween(sel.from, sel.to, ' ');
+			const newText = text.trim();
+
+			if (!newText || newText === selectedText) {
+				editor.chain().focus().setTextSelection(sel).setLink({ href }).run();
+			} else {
+				editor
+					.chain()
+					.focus()
+					.setTextSelection(sel)
+					.insertContent({
+						type: 'text',
+						text: newText,
+						marks: [{ type: 'link', attrs: { href } }]
+					})
+					.run();
+			}
+		} else {
+			const linkText = text.trim() || href;
+			editor
+				.chain()
+				.focus()
+				.setTextSelection(sel)
+				.insertContent({
+					type: 'text',
+					text: linkText,
+					marks: [{ type: 'link', attrs: { href } }]
+				})
+				.run();
+		}
+
+		isLinkModalOpen = false;
+		savedSelection = null;
+	}
+
+	function handleUnlink() {
+		if (!editor) return;
+		const sel = savedSelection ?? editor.state.selection;
+		editor
+			.chain()
+			.focus()
+			.setTextSelection({ from: sel.from, to: sel.to })
+			.extendMarkRange('link')
+			.unsetLink()
+			.run();
+		isLinkModalOpen = false;
+		savedSelection = null;
+	}
+
+	function handleCloseLinkModal() {
+		isLinkModalOpen = false;
+		savedSelection = null;
+		editor?.commands.focus();
+	}
+
 	export function getMarkdown(): string {
 		if (!editor) return '';
 		const storage = editor.storage as unknown as {
@@ -165,7 +280,7 @@
 	class="relative flex flex-col rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] shadow-xs overflow-hidden transition-colors"
 >
 	{#if editable}
-		<EditorToolbar {editor} onInsertWikilink={openWikilinkModal} />
+		<EditorToolbar {editor} onInsertWikilink={openWikilinkModal} onInsertLink={openLinkModal} />
 	{/if}
 
 	<div bind:this={element} class="w-full flex-1 overflow-y-auto cursor-text"></div>
@@ -175,6 +290,16 @@
 		onClose={() => (isWikilinkModalOpen = false)}
 		onSelect={handleWikilinkSelect}
 		{availableDocuments}
+	/>
+
+	<LinkModal
+		isOpen={isLinkModalOpen}
+		initialUrl={linkModalInitialUrl}
+		initialText={linkModalInitialText}
+		isEditing={isEditingLink}
+		onClose={handleCloseLinkModal}
+		onSave={handleSaveLink}
+		onUnlink={handleUnlink}
 	/>
 </div>
 

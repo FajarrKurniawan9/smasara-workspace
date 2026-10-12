@@ -26,6 +26,12 @@
 		onClose();
 	}
 
+	function handleKeydown(e: KeyboardEvent) {
+		if (isOpen && e.key === 'Escape') {
+			onClose();
+		}
+	}
+
 	function handleManualSubmit(e: SubmitEvent) {
 		e.preventDefault();
 		const slugToUse = manualSlug.trim() || searchQuery.trim();
@@ -35,68 +41,115 @@
 	}
 </script>
 
+<svelte:window onkeydown={handleKeydown} />
+
 {#if isOpen}
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150"
 		role="dialog"
 		aria-modal="true"
+		aria-labelledby="wikilink-modal-title"
 	>
+		<!-- Backdrop click handler -->
+		<button
+			type="button"
+			class="absolute inset-0 h-full w-full cursor-default bg-transparent"
+			tabindex="-1"
+			aria-label="Tutup modal"
+			onclick={onClose}
+		></button>
+
 		<div
-			class="w-full max-w-md rounded-xl border border-gray-200 bg-white p-5 shadow-xl transition-all"
+			class="relative w-full max-w-md rounded-2xl border border-[var(--border-app)] bg-[var(--bg-surface)] p-6 shadow-xl space-y-4"
 		>
-			<div class="flex items-center justify-between pb-3 border-b border-gray-100">
-				<h3 class="text-base font-semibold text-gray-800 flex items-center gap-1.5">
-					<span class="text-emerald-600 font-mono font-bold">[[ ]]</span>
-					<span>Sisipkan Wikilink Catatan</span>
-				</h3>
+			<div class="flex items-start justify-between pb-3 border-b border-[var(--border-app-subtle)]">
+				<div class="flex items-center gap-2.5">
+					<div
+						class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface-subtle)] font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400"
+					>
+						[[ ]]
+					</div>
+					<div>
+						<h3
+							id="wikilink-modal-title"
+							class="text-base font-semibold text-[var(--text-primary)]"
+						>
+							Sisipkan Wikilink Catatan
+						</h3>
+						<p class="text-xs text-[var(--text-muted)]">
+							Tautkan catatan ini ke dokumen lain di workspace
+						</p>
+					</div>
+				</div>
 				<button
 					type="button"
 					onclick={onClose}
-					class="text-gray-400 hover:text-gray-600 rounded p-1 hover:bg-gray-100 text-lg leading-none"
+					class="rounded-lg p-1.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)]"
+					aria-label="Tutup modal wikilink"
 				>
-					&times;
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="18"
+						height="18"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<line x1="18" y1="6" x2="6" y2="18" />
+						<line x1="6" y1="6" x2="18" y2="18" />
+					</svg>
 				</button>
 			</div>
 
-			<div class="mt-4">
+			<div class="mt-2">
 				<input
 					type="text"
 					bind:value={searchQuery}
 					placeholder="Cari judul catatan atau slug..."
-					class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+					class="w-full rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface-subtle)] px-3.5 py-2 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] transition-colors focus:border-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--text-primary)]"
 				/>
 			</div>
 
 			<!-- List Catatan yang Tersedia -->
 			<div
-				class="mt-3 max-h-56 overflow-y-auto divide-y divide-gray-100 rounded-md border border-gray-100"
+				class="max-h-52 overflow-y-auto divide-y divide-[var(--border-app-subtle)] rounded-xl border border-[var(--border-app-subtle)] bg-[var(--bg-surface)]"
 			>
 				{#if filteredDocs.length > 0}
 					{#each filteredDocs as doc (doc.id)}
 						<button
 							type="button"
 							onclick={() => handlePick(doc.slug, doc.title)}
-							class="w-full text-left px-3 py-2 hover:bg-emerald-50/60 transition-colors flex flex-col group"
+							class="w-full text-left px-3.5 py-2.5 hover:bg-[var(--bg-surface-subtle)] transition-colors flex flex-col group"
 						>
-							<span class="text-sm font-medium text-gray-800 group-hover:text-emerald-800">
+							<span
+								class="text-sm font-medium text-[var(--text-primary)] group-hover:text-emerald-600 transition-colors"
+							>
 								{doc.title}
 							</span>
-							<span class="text-xs font-mono text-gray-400 group-hover:text-emerald-600">
+							<span
+								class="text-xs font-mono text-[var(--text-muted)] group-hover:text-emerald-500 transition-colors"
+							>
 								[[{doc.slug}]]
 							</span>
 						</button>
 					{/each}
 				{:else}
-					<div class="p-4 text-center text-xs text-gray-500">
+					<div class="p-4 text-center text-xs text-[var(--text-muted)]">
 						Tidak ada dokumen yang cocok dengan kata kunci.
 					</div>
 				{/if}
 			</div>
 
 			<!-- Opsi Buat Manual atau slug baru -->
-			<form onsubmit={handleManualSubmit} class="mt-4 pt-3 border-t border-gray-100">
-				<label for="manual-slug" class="block text-xs font-medium text-gray-600 mb-1">
-					Atau gunakan slug / judul baru:
+			<form onsubmit={handleManualSubmit} class="pt-3 border-t border-[var(--border-app-subtle)]">
+				<label
+					for="manual-slug"
+					class="block text-xs font-medium text-[var(--text-secondary)] mb-1.5"
+				>
+					Atau gunakan slug / rujukan baru:
 				</label>
 				<div class="flex gap-2">
 					<input
@@ -104,11 +157,11 @@
 						type="text"
 						bind:value={manualSlug}
 						placeholder="contoh: catatan-penting"
-						class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-mono focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+						class="flex-1 rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface-subtle)] px-3 py-1.5 text-xs font-mono text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--text-primary)]"
 					/>
 					<button
 						type="submit"
-						class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 transition-colors"
+						class="rounded-xl bg-[var(--text-primary)] px-4 py-1.5 text-xs font-medium text-[var(--bg-surface)] transition-opacity hover:opacity-90 active:scale-[0.98]"
 					>
 						Gunakan
 					</button>
