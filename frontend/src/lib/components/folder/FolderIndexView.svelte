@@ -60,11 +60,13 @@
 
 <div class="h-full flex flex-col overflow-y-auto p-8 max-w-5xl mx-auto space-y-8">
 	<!-- Folder Breadcrumb & Header -->
-	<div class="flex items-center justify-between pb-4 border-b border-gray-200">
+	<div class="flex items-center justify-between pb-4 border-b border-[var(--border-app-subtle)]">
 		<div class="flex items-center gap-2">
-			<span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Folder</span>
-			<span class="text-gray-300">/</span>
-			<h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+			<span class="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider"
+				>Folder</span
+			>
+			<span class="text-[var(--text-muted)]">/</span>
+			<h1 class="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
 				<svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					<path
 						stroke-linecap="round"
@@ -80,7 +82,7 @@
 		<button
 			type="button"
 			onclick={() => folderStore.openDocumentEditor()}
-			class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-gray-900 shadow-2xs transition-colors cursor-pointer"
+			class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] bg-[var(--bg-surface)] border border-[var(--border-app)] rounded-xl hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] shadow-2xs transition-colors cursor-pointer"
 		>
 			<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -90,11 +92,13 @@
 	</div>
 
 	<!-- Section 1: Folder README (Index Document) -->
-	<section class="rounded-xl border border-gray-200 bg-white p-6 shadow-xs space-y-4">
-		<div class="flex items-center justify-between pb-3 border-b border-gray-100">
+	<section
+		class="rounded-2xl border border-[var(--border-app)] bg-[var(--bg-surface)] p-6 shadow-xs space-y-4"
+	>
+		<div class="flex items-center justify-between pb-3 border-b border-[var(--border-app-subtle)]">
 			<div class="flex items-center gap-2">
 				<span
-					class="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5"
+					class="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-1.5"
 				>
 					<svg
 						class="w-4 h-4 text-emerald-600"
@@ -112,7 +116,7 @@
 					README / Dokumen Indeks
 				</span>
 				{#if indexDoc}
-					<span class="text-[11px] font-mono text-gray-400">[[{indexDoc.slug}]]</span>
+					<span class="text-[11px] font-mono text-[var(--text-muted)]">[[{indexDoc.slug}]]</span>
 				{/if}
 			</div>
 
@@ -154,12 +158,16 @@
 
 		<!-- Dialog Inline Pemilihan Indeks -->
 		{#if isSettingIndex && !indexDoc}
-			<div class="p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
-				<p class="text-xs font-medium text-gray-700">Pilih catatan yang ada di folder ini:</p>
+			<div
+				class="p-3 bg-[var(--bg-surface-subtle)] rounded-xl border border-[var(--border-app)] space-y-2"
+			>
+				<p class="text-xs font-medium text-[var(--text-secondary)]">
+					Pilih catatan yang ada di folder ini:
+				</p>
 				<div class="flex items-center gap-2">
 					<select
 						bind:value={selectedDocForIndex}
-						class="flex-1 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-800 focus:border-emerald-500 focus:outline-none"
+						class="flex-1 rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-2.5 py-1.5 text-xs text-[var(--text-primary)] focus:border-emerald-500 focus:outline-none"
 					>
 						<option value="">-- Pilih Catatan --</option>
 						{#each folderDocs as d (d.id)}
@@ -180,21 +188,23 @@
 
 		<!-- Konten Indeks -->
 		{#if folderStore.isLoadingDetail}
-			<div class="py-12 text-center text-xs text-gray-400 animate-pulse">
+			<div class="py-12 text-center text-xs text-[var(--text-muted)] animate-pulse">
 				Memuat indeks folder...
 			</div>
 		{:else if indexDoc}
 			<div class="space-y-2">
-				<h2 class="text-lg font-bold text-gray-900">{indexDoc.title}</h2>
+				<h2 class="text-lg font-bold text-[var(--text-primary)]">{indexDoc.title}</h2>
 				<div
-					class="prose prose-sm max-w-none text-gray-700 bg-gray-50/50 p-4 rounded-lg border border-gray-100 whitespace-pre-wrap font-sans text-xs leading-relaxed"
+					class="prose prose-sm max-w-none text-[var(--text-secondary)] bg-[var(--bg-surface-subtle)]/50 p-4 rounded-xl border border-[var(--border-app-subtle)] whitespace-pre-wrap font-sans text-xs leading-relaxed"
 				>
 					{indexDoc.content || 'Catatan ini belum memiliki isi konten.'}
 				</div>
 			</div>
 		{:else}
-			<div class="py-8 text-center border-2 border-dashed border-gray-200 rounded-lg space-y-3">
-				<p class="text-xs text-gray-500">
+			<div
+				class="py-8 text-center border-2 border-dashed border-[var(--border-app)] rounded-2xl space-y-3"
+			>
+				<p class="text-xs text-[var(--text-secondary)]">
 					Folder ini belum memiliki dokumen indeks (README pengantar).
 				</p>
 				<div class="flex items-center justify-center gap-3">
@@ -214,7 +224,7 @@
 	<!-- Section 2: Daftar Catatan Anggota Folder -->
 	<section class="space-y-4">
 		<div class="flex items-center justify-between">
-			<h2 class="text-xs font-bold text-gray-800 uppercase tracking-wider">
+			<h2 class="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
 				Daftar Catatan dalam Folder ({folderDocs.length})
 			</h2>
 			<button
@@ -228,7 +238,9 @@
 		</div>
 
 		{#if folderDocs.length === 0}
-			<div class="p-6 rounded-xl border border-gray-200 bg-white text-center text-xs text-gray-400">
+			<div
+				class="p-6 rounded-2xl border border-[var(--border-app)] bg-[var(--bg-surface)] text-center text-xs text-[var(--text-muted)]"
+			>
 				Belum ada catatan di dalam folder ini.
 			</div>
 		{:else}
@@ -240,12 +252,12 @@
 							folderStore.openDocumentEditor();
 							onSelectDocument(doc);
 						}}
-						class="text-left rounded-xl border border-gray-200 bg-white p-4 shadow-xs hover:border-emerald-300 hover:shadow-sm transition-all flex flex-col justify-between gap-3 group cursor-pointer"
+						class="text-left rounded-2xl border border-[var(--border-app)] bg-[var(--bg-surface)] p-4 shadow-xs hover:border-emerald-500/50 hover:bg-[var(--bg-surface-subtle)] hover:shadow-sm transition-all flex flex-col justify-between gap-3 group cursor-pointer"
 					>
 						<div class="space-y-1">
 							<div class="flex items-start justify-between gap-2">
 								<h3
-									class="text-sm font-semibold text-gray-800 group-hover:text-emerald-800 line-clamp-1"
+									class="text-sm font-semibold text-[var(--text-primary)] group-hover:text-emerald-500 line-clamp-1"
 								>
 									{doc.title}
 								</h3>
@@ -268,11 +280,11 @@
 									/>
 								</div>
 							</div>
-							<p class="text-xs text-gray-400 font-mono">[[{doc.slug}]]</p>
+							<p class="text-xs text-[var(--text-muted)] font-mono">[[{doc.slug}]]</p>
 						</div>
 
 						<div
-							class="flex items-center justify-between text-[11px] text-gray-400 pt-2 border-t border-gray-100"
+							class="flex items-center justify-between text-[11px] text-[var(--text-muted)] pt-2 border-t border-[var(--border-app-subtle)]"
 						>
 							<span>v{doc.version}</span>
 							<span>{new Date(doc.updated_at).toLocaleDateString('id-ID')}</span>

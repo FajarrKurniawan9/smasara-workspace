@@ -29,9 +29,9 @@
 		aria-modal="true"
 	>
 		<div
-			class="w-full max-w-2xl rounded-2xl border border-red-200 bg-white p-6 shadow-2xl transition-all"
+			class="w-full max-w-2xl rounded-2xl border border-red-500/20 bg-[var(--bg-surface)] p-6 shadow-2xl transition-all text-[var(--text-primary)]"
 		>
-			<div class="flex items-start gap-3 border-b border-gray-100 pb-4">
+			<div class="flex items-start gap-3 border-b border-[var(--border-app-subtle)] pb-4">
 				<div class="rounded-full bg-red-100 p-2 text-red-600">
 					<svg
 						class="h-6 w-6"
@@ -48,8 +48,10 @@
 					</svg>
 				</div>
 				<div>
-					<h3 class="text-lg font-bold text-gray-900">Konflik Versi Dokumen (HTTP 409)</h3>
-					<p class="text-sm text-gray-500 mt-0.5">
+					<h3 class="text-lg font-bold text-[var(--text-primary)]">
+						Konflik Versi Dokumen (HTTP 409)
+					</h3>
+					<p class="text-sm text-[var(--text-secondary)] mt-0.5">
 						Dokumen "{currentTitle}" telah diubah di server (versi saat ini: {serverVersion}).
 						Simpanan lokal Anda tertinggal.
 					</p>
@@ -58,34 +60,33 @@
 
 			<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
 				<!-- Versi Lokal Kamu -->
-				<div class="rounded-xl border border-amber-200 bg-amber-50/40 p-3.5 flex flex-col">
+				<div class="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 flex flex-col">
 					<div class="flex items-center justify-between mb-2">
-						<span class="text-xs font-bold uppercase tracking-wider text-amber-800">
+						<span class="text-xs font-bold uppercase tracking-wider text-amber-500">
 							Versi Editan Anda (Lokal)
 						</span>
-						<span class="text-xs text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full font-mono">
+						<span class="text-xs text-amber-500 bg-amber-500/20 px-2 py-0.5 rounded-full font-mono">
 							Belum Tersimpan
 						</span>
 					</div>
 					<div
-						class="flex-1 max-h-48 overflow-y-auto rounded border border-amber-200/60 bg-white p-2.5 font-mono text-xs text-gray-700 whitespace-pre-wrap select-all"
+						class="flex-1 max-h-48 overflow-y-auto rounded-lg border border-[var(--border-app)] bg-[var(--bg-surface)] p-2.5 font-mono text-xs text-[var(--text-primary)] whitespace-pre-wrap select-all"
 					>
 						{currentContent || '(Konten kosong)'}
 					</div>
 				</div>
 
-				<!-- Versi Terbaru di Server -->
-				<div class="rounded-xl border border-blue-200 bg-blue-50/40 p-3.5 flex flex-col">
+				<div class="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3.5 flex flex-col">
 					<div class="flex items-center justify-between mb-2">
-						<span class="text-xs font-bold uppercase tracking-wider text-blue-800">
+						<span class="text-xs font-bold uppercase tracking-wider text-blue-500">
 							Versi Server (Terbaru)
 						</span>
-						<span class="text-xs text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full font-mono">
+						<span class="text-xs text-blue-500 bg-blue-500/20 px-2 py-0.5 rounded-full font-mono">
 							Versi {serverVersion}
 						</span>
 					</div>
 					<div
-						class="flex-1 max-h-48 overflow-y-auto rounded border border-blue-200/60 bg-white p-2.5 font-mono text-xs text-gray-700 whitespace-pre-wrap select-all"
+						class="flex-1 max-h-48 overflow-y-auto rounded-lg border border-[var(--border-app)] bg-[var(--bg-surface)] p-2.5 font-mono text-xs text-[var(--text-primary)] whitespace-pre-wrap select-all"
 					>
 						{serverContent || '(Konten kosong)'}
 					</div>
@@ -93,13 +94,9 @@
 			</div>
 
 			<div
-				class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4"
+				class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border-app-subtle)] pt-4"
 			>
-				<button
-					type="button"
-					onclick={onCancel}
-					class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-				>
+				<button type="button" onclick={onCancel} class="btn-ghost">
 					Batal Simpan (Tinjau Lagi)
 				</button>
 

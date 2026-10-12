@@ -158,10 +158,10 @@
 
 		<!-- Command Palette Panel -->
 		<div
-			class="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-zinc-900/5"
+			class="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-[var(--bg-surface)] shadow-card border border-[var(--border-app)] text-[var(--text-primary)]"
 			transition:slide={{ duration: 200, axis: 'y' }}
 		>
-			<div class="flex items-center border-b border-zinc-100 px-4">
+			<div class="flex items-center border-b border-[var(--border-app-subtle)] px-4">
 				<svg
 					class="h-5 w-5 text-zinc-400"
 					fill="none"
@@ -180,7 +180,7 @@
 					bind:value={searchQuery}
 					oninput={handleInput}
 					type="text"
-					class="w-full border-0 bg-transparent py-4 pl-3 pr-4 text-base text-zinc-900 placeholder-zinc-400 outline-none focus:ring-0"
+					class="w-full border-0 bg-transparent py-4 pl-3 pr-4 text-base text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none focus:ring-0"
 					placeholder="Cari catatan... (judul atau konten)"
 					autocomplete="off"
 				/>
@@ -188,12 +188,12 @@
 				{#if isLoading}
 					<span class="flex h-4 w-4 shrink-0">
 						<span
-							class="h-4 w-4 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent"
+							class="h-4 w-4 animate-spin rounded-full border-2 border-[var(--text-primary)] border-t-transparent"
 						></span>
 					</span>
 				{:else}
 					<span
-						class="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold text-zinc-400 shadow-2xs"
+						class="rounded-lg border border-[var(--border-app)] bg-[var(--bg-surface-subtle)] px-2 py-0.5 text-[10px] font-semibold text-[var(--text-muted)] shadow-2xs"
 					>
 						ESC
 					</span>
@@ -203,16 +203,18 @@
 			<div class="max-h-[60vh] overscroll-contain overflow-y-auto p-2">
 				{#if searchQuery.trim() === ''}
 					<div class="px-6 py-12 text-center">
-						<p class="text-sm text-zinc-500">Mulai mengetik untuk mencari catatan.</p>
+						<p class="text-sm text-[var(--text-secondary)]">
+							Mulai mengetik untuk mencari catatan.
+						</p>
 					</div>
 				{:else if results.length === 0 && !isLoading}
 					<div class="px-6 py-12 text-center">
-						<p class="text-sm text-zinc-500">
+						<p class="text-sm text-[var(--text-secondary)]">
 							Tidak ada catatan yang cocok dengan "{searchQuery}".
 						</p>
 					</div>
 				{:else}
-					<div class="space-y-1 text-sm text-zinc-700" role="listbox">
+					<div class="space-y-1 text-sm text-[var(--text-secondary)]" role="listbox">
 						{#each results as doc, i (doc.id)}
 							<button
 								type="button"
@@ -221,8 +223,8 @@
 								aria-selected={i === selectedIndex}
 								class="flex w-full cursor-default select-none flex-col gap-1 rounded-xl px-4 py-3 text-left transition-all {i ===
 								selectedIndex
-									? 'bg-zinc-100 text-zinc-900'
-									: 'text-zinc-700 hover:bg-zinc-50'}"
+									? 'bg-[var(--bg-surface-subtle)] text-[var(--text-primary)]'
+									: 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)]/60'}"
 								onmousemove={() => (selectedIndex = i)}
 								onclick={() => selectDocument(doc)}
 							>
@@ -230,8 +232,8 @@
 									<div class="flex min-w-0 items-center gap-2">
 										<svg
 											class="h-4 w-4 shrink-0 {i === selectedIndex
-												? 'text-zinc-900'
-												: 'text-zinc-400'}"
+												? 'text-[var(--text-primary)]'
+												: 'text-[var(--text-muted)]'}"
 											fill="none"
 											viewBox="0 0 24 24"
 											stroke="currentColor"
@@ -245,8 +247,8 @@
 										</svg>
 										<span
 											class="font-medium truncate {i === selectedIndex
-												? 'text-zinc-900 font-semibold'
-												: 'text-zinc-800'}"
+												? 'text-[var(--text-primary)] font-semibold'
+												: 'text-[var(--text-secondary)]'}"
 										>
 											{doc.title}
 										</span>
@@ -262,13 +264,15 @@
 								<div class="flex items-center gap-3 pl-6">
 									<span
 										class="truncate font-mono text-xs {i === selectedIndex
-											? 'text-zinc-600'
-											: 'text-zinc-400'}"
+											? 'text-[var(--text-secondary)]'
+											: 'text-[var(--text-muted)]'}"
 									>
 										[[{doc.slug}]]
 									</span>
 									<span
-										class="text-[10px] {i === selectedIndex ? 'text-zinc-500' : 'text-zinc-400'}"
+										class="text-[10px] {i === selectedIndex
+											? 'text-[var(--text-secondary)]'
+											: 'text-[var(--text-muted)]'}"
 									>
 										Update: {new Date(doc.updated_at).toLocaleDateString('id-ID')}
 									</span>
@@ -280,23 +284,23 @@
 			</div>
 
 			<div
-				class="flex items-center justify-between border-t border-zinc-100 bg-zinc-50/70 px-4 py-3 text-xs text-zinc-500"
+				class="flex items-center justify-between border-t border-[var(--border-app-subtle)] bg-[var(--bg-surface-subtle)] px-4 py-3 text-xs text-[var(--text-secondary)]"
 			>
 				<div class="flex items-center gap-3">
 					<span class="flex items-center gap-1">
 						<kbd
-							class="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold text-zinc-400 shadow-2xs"
+							class="rounded-md border border-[var(--border-app)] bg-[var(--bg-surface)] px-1.5 py-0.5 font-sans text-[10px] font-semibold text-[var(--text-muted)] shadow-2xs"
 							>↑</kbd
 						>
 						<kbd
-							class="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold text-zinc-400 shadow-2xs"
+							class="rounded-md border border-[var(--border-app)] bg-[var(--bg-surface)] px-1.5 py-0.5 font-sans text-[10px] font-semibold text-[var(--text-muted)] shadow-2xs"
 							>↓</kbd
 						>
 						Navigasi
 					</span>
 					<span class="flex items-center gap-1">
 						<kbd
-							class="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold text-zinc-400 shadow-2xs"
+							class="rounded-md border border-[var(--border-app)] bg-[var(--bg-surface)] px-1.5 py-0.5 font-sans text-[10px] font-semibold text-[var(--text-muted)] shadow-2xs"
 							>↵</kbd
 						>
 						Pilih
@@ -304,7 +308,7 @@
 				</div>
 				<span class="flex items-center gap-1">
 					<kbd
-						class="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold text-zinc-400 shadow-2xs"
+						class="rounded-md border border-[var(--border-app)] bg-[var(--bg-surface)] px-1.5 py-0.5 font-sans text-[10px] font-semibold text-[var(--text-muted)] shadow-2xs"
 						>ESC</kbd
 					>
 					Tutup

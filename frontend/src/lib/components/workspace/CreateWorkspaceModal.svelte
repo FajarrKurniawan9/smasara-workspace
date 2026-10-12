@@ -40,28 +40,32 @@
 		aria-modal="true"
 	>
 		<div
-			class="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-5 shadow-xl transition-all"
+			class="w-full max-w-sm rounded-2xl border border-[var(--border-app)] bg-[var(--bg-surface)] p-5 shadow-xl transition-all text-[var(--text-primary)]"
 		>
-			<div class="flex items-center justify-between pb-3 border-b border-gray-100">
-				<h3 class="text-base font-semibold text-gray-800">Buat Workspace Baru</h3>
+			<div
+				class="flex items-center justify-between pb-3 border-b border-[var(--border-app-subtle)]"
+			>
+				<h3 class="text-base font-semibold text-[var(--text-primary)]">Buat Workspace Baru</h3>
 				<button
 					type="button"
 					onclick={onClose}
-					class="text-gray-400 hover:text-gray-600 rounded p-1 hover:bg-gray-100 text-lg leading-none"
+					class="text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-lg p-1 hover:bg-[var(--bg-surface-subtle)] text-lg leading-none transition-colors"
 				>
 					&times;
 				</button>
 			</div>
 
 			{#if errorMsg}
-				<div class="mt-3 rounded-md bg-red-50 p-2.5 text-xs text-red-600">
+				<div
+					class="mt-3 rounded-xl bg-red-500/10 p-2.5 text-xs text-red-500 border border-red-500/20"
+				>
 					{errorMsg}
 				</div>
 			{/if}
 
 			<form onsubmit={handleSubmit} class="mt-4 space-y-4">
 				<div>
-					<label for="ws-name" class="block text-xs font-medium text-gray-700 mb-1">
+					<label for="ws-name" class="block text-xs font-medium text-[var(--text-secondary)] mb-1">
 						Nama Workspace
 					</label>
 					<input
@@ -70,20 +74,13 @@
 						bind:value={workspaceName}
 						placeholder="Misal: Catatan Pribadi, Riset AI..."
 						required
-						class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+						class="w-full rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
 					/>
 				</div>
 
 				<div class="flex items-center justify-end gap-2 pt-2">
+					<button type="button" onclick={onClose} class="btn-ghost"> Batal </button>
 					<button
-						type="button"
-						onclick={onClose}
-						class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-					>
-						Batal
-					</button>
-					<button
-						type="submit"
 						disabled={isSubmitting}
 						class="rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors disabled:opacity-50"
 					>

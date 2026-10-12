@@ -142,20 +142,22 @@
 					{/if}
 
 					<div class="flex-1">
-						<h1 class="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
+						<h1 class="text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">
 							{profileData.profile.full_name}
 						</h1>
-						<p class="mt-0.5 text-sm font-medium text-zinc-500">
+						<p class="mt-0.5 text-sm font-medium text-[var(--text-secondary)]">
 							@{profileData.profile.username}
 						</p>
-						<p class="mt-2 text-xs text-zinc-400">Catatan & Artikel Publik</p>
+						<p class="mt-2 text-xs text-[var(--text-muted)]">Catatan & Artikel Publik</p>
 					</div>
 
 					<div
-						class="flex items-center gap-1.5 rounded-xl border border-zinc-200/80 bg-zinc-50 px-3.5 py-2 text-xs font-medium text-zinc-700 shadow-2xs"
+						class="flex items-center gap-1.5 rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface-subtle)] px-3.5 py-2 text-xs font-medium text-[var(--text-secondary)] shadow-2xs"
 					>
-						<span class="font-semibold text-zinc-900">{profileData.documents.length}</span>
-						<span class="text-zinc-500">Dokumen Publik</span>
+						<span class="font-semibold text-[var(--text-primary)]"
+							>{profileData.documents.length}</span
+						>
+						<span class="text-[var(--text-secondary)]">Dokumen Publik</span>
 					</div>
 				</div>
 			</div>
@@ -163,7 +165,7 @@
 			<!-- Tab Switcher: Feed vs Graph (T-503 Toggle Graph View) -->
 			<section class="mt-8 flex flex-col gap-4">
 				<div
-					class="flex flex-col justify-between gap-3 border-b border-zinc-200/80 pb-3 sm:flex-row sm:items-center"
+					class="flex flex-col justify-between gap-3 border-b border-[var(--border-app-subtle)] pb-3 sm:flex-row sm:items-center"
 				>
 					<div class="flex items-center gap-2">
 						<button
@@ -171,8 +173,8 @@
 							onclick={() => (activeTab = 'feed')}
 							class="flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-medium transition-all active:scale-[0.98] {activeTab ===
 							'feed'
-								? 'bg-zinc-900 text-white shadow-input'
-								: 'border border-zinc-200 bg-white text-zinc-600 shadow-2xs hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900'}"
+								? 'bg-[var(--text-primary)] text-[var(--bg-surface)] shadow-input'
+								: 'border border-[var(--border-app)] bg-[var(--bg-surface)] text-[var(--text-secondary)] shadow-2xs hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)]'}"
 						>
 							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
@@ -185,8 +187,8 @@
 							<span>Feed Publikasi</span>
 							<span
 								class="rounded-full px-1.5 py-0.5 text-[10px] font-semibold {activeTab === 'feed'
-									? 'bg-zinc-800 text-zinc-200'
-									: 'bg-zinc-100 text-zinc-600'}"
+									? 'bg-[var(--bg-surface)]/20 text-[var(--bg-surface)]'
+									: 'bg-[var(--bg-surface-subtle)] text-[var(--text-secondary)]'}"
 							>
 								{profileData.documents.length}
 							</span>
@@ -197,8 +199,8 @@
 							onclick={() => (activeTab = 'graph')}
 							class="flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-medium transition-all active:scale-[0.98] {activeTab ===
 							'graph'
-								? 'bg-zinc-900 text-white shadow-input'
-								: 'border border-zinc-200 bg-white text-zinc-600 shadow-2xs hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900'}"
+								? 'bg-[var(--text-primary)] text-[var(--bg-surface)] shadow-input'
+								: 'border border-[var(--border-app)] bg-[var(--bg-surface)] text-[var(--text-secondary)] shadow-2xs hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)]'}"
 						>
 							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
@@ -212,7 +214,7 @@
 						</button>
 					</div>
 
-					<span class="text-xs text-zinc-500">
+					<span class="text-xs text-[var(--text-secondary)]">
 						{activeTab === 'feed'
 							? 'Daftar artikel publik urut tanggal publikasi terbaru'
 							: 'Grafik visualisasi simpul & koneksi antar-catatan publik (max 100)'}
@@ -222,7 +224,7 @@
 				{#if activeTab === 'feed'}
 					{#if profileData.documents.length === 0}
 						<div
-							class="rounded-2xl border border-dashed border-zinc-300 bg-white p-12 text-center text-zinc-500"
+							class="rounded-2xl border border-dashed border-[var(--border-app)] bg-[var(--bg-surface)] p-12 text-center text-[var(--text-secondary)]"
 						>
 							<svg
 								class="mx-auto h-10 w-10 text-zinc-400"
@@ -237,10 +239,10 @@
 									d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
 								/>
 							</svg>
-							<p class="mt-3 text-sm font-semibold tracking-tight text-zinc-800">
+							<p class="mt-3 text-sm font-semibold tracking-tight text-[var(--text-primary)]">
 								Belum Ada Dokumen Publik
 							</p>
-							<p class="mt-1 text-xs text-zinc-400">
+							<p class="mt-1 text-xs text-[var(--text-muted)]">
 								@{profileData.profile.username} belum menerbitkan catatan publik apapun.
 							</p>
 						</div>
@@ -249,7 +251,7 @@
 							{#each profileData.documents as doc (doc.id)}
 								<article
 									id="doc-{doc.id}"
-									class="group rounded-2xl bg-white p-6 shadow-card ring-1 ring-zinc-900/5 transition-all hover:ring-zinc-900/10 {highlightedDocId ===
+									class="group rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-app)] p-6 shadow-card transition-all hover:border-[var(--text-primary)]/30 {highlightedDocId ===
 									doc.id
 										? 'ring-2 ring-primary-500 bg-primary-50/20'
 										: ''}"
@@ -257,11 +259,13 @@
 									<div class="flex items-start justify-between gap-4">
 										<div>
 											<h3
-												class="text-lg font-semibold tracking-tight text-zinc-900 transition-colors group-hover:text-primary-600"
+												class="text-lg font-semibold tracking-tight text-[var(--text-primary)] transition-colors group-hover:text-primary-600"
 											>
 												{doc.title}
 											</h3>
-											<div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+											<div
+												class="mt-1 flex flex-wrap items-center gap-2 text-xs text-[var(--text-secondary)]"
+											>
 												{#if doc.published_at}
 													<span>Diterbitkan {formatDate(doc.published_at)}</span>
 													<span class="text-zinc-300">•</span>
@@ -270,7 +274,7 @@
 												{#if doc.folder_name}
 													<span class="text-zinc-300">•</span>
 													<span
-														class="rounded-lg bg-zinc-100 px-2 py-0.5 font-medium text-zinc-600"
+														class="rounded-lg bg-[var(--bg-surface-subtle)] px-2 py-0.5 font-medium text-[var(--text-secondary)]"
 													>
 														{doc.folder_name}
 													</span>
@@ -284,7 +288,7 @@
 										</span>
 									</div>
 
-									<p class="mt-3 text-sm leading-relaxed text-zinc-600">
+									<p class="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">
 										{getExcerpt(doc.content)}
 									</p>
 								</article>

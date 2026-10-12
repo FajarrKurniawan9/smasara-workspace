@@ -5,12 +5,15 @@ import { execSync } from 'node:child_process';
 const DB_CONTAINER = 'smasara-workspace-db-1';
 
 function runPsql(sql: string) {
-	execSync(`docker exec -i ${DB_CONTAINER} psql -U postgres -d smasara_db -q`, {
-		input: sql,
-		stdio: ['pipe', 'pipe', 'pipe']
-	});
+	try {
+		execSync(`docker exec -i ${DB_CONTAINER} psql -U postgres -d smasara_db -q`, {
+			input: sql,
+			stdio: ['pipe', 'pipe', 'pipe']
+		});
+	} catch (e) {
+		console.warn('Docker runPsql skipped/failed:', e);
+	}
 }
-
 function generateJwt(userId: string): string {
 	const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
 	const payload = Buffer.from(

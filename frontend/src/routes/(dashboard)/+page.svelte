@@ -56,6 +56,11 @@
 
 	let editorInstance: MarkdownEditor | undefined = $state();
 
+	// Status Penghapusan Dokumen (Delete Document)
+	let isDeleting = $state(false);
+	let isDeleteModalOpen = $state(false);
+	let docToDelete = $state<DocumentItem | null>(null);
+
 	// Debounce auto-save
 	let autoSaveTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -293,6 +298,7 @@
 		const wsId = workspaceStore.currentWorkspaceId;
 		if (!currentDoc || !wsId) return;
 
+		const targetDocId = currentDoc.id;
 		const versionToSend = forceVersion !== undefined ? forceVersion : currentDoc.version;
 		isSaving = true;
 		saveStatus = 'saving';
@@ -300,7 +306,7 @@
 
 		try {
 			const res = await fetchApi<{ message: string; document: DocumentItem }>(
-				`/api/workspaces/${wsId}/documents/${currentDoc.id}`,
+				`/api/workspaces/${wsId}/documents/${targetDocId}`,
 				{
 					method: 'PUT',
 					body: JSON.stringify({
@@ -313,12 +319,18 @@
 				}
 			);
 
+			// Jika dokumen telah dihapus selagi request berjalan, abaikan respon
+			if (!documents.some((d) => d.id === targetDocId)) {
+				return;
+			}
+
 			// Berhasil simpan
 			const updatedDoc = res.document;
-			currentDoc = updatedDoc;
-			saveStatus = 'saved';
+			if (currentDoc && currentDoc.id === targetDocId) {
+				currentDoc = updatedDoc;
+				saveStatus = 'saved';
+			}
 			statusMessage = 'Tersimpan';
-
 			// Update di list dokumen
 			documents = documents.map((d) => (d.id === updatedDoc.id ? updatedDoc : d));
 		} catch (err: unknown) {
@@ -429,6 +441,60 @@
 			toast.info(`Catatan dengan slug "[[${slug}]]" belum ada di workspace ini.`);
 		}
 	}
+
+	function promptDeleteDocument(doc: DocumentItem | null) {
+		if (!doc) return;
+		docToDelete = doc;
+		isDeleteModalOpen = true;
+	}
+
+	async function confirmDeleteDocument() {
+		const wsId = workspaceStore.currentWorkspaceId;
+		const doc = docToDelete;
+		if (!doc || !wsId || isDeleting) return;
+
+		// Hanya bersihkan timer auto-save jika dokumen yang dihapus adalah dokumen aktif
+		const isDeletingCurrentDoc = currentDoc?.id === doc.id;
+		if (isDeletingCurrentDoc && autoSaveTimer) {
+			clearTimeout(autoSaveTimer);
+			autoSaveTimer = undefined;
+		}
+
+		try {
+			isDeleting = true;
+			await fetchApi(`/api/workspaces/${wsId}/documents/${doc.id}`, {
+				method: 'DELETE'
+			});
+
+			toast.success(`Catatan "${doc.title}" berhasil dipindahkan ke Recycle Bin`);
+
+			// Hapus dokumen dari daftar lokal
+			documents = documents.filter((d) => d.id !== doc.id);
+
+			// Jika dokumen yang dihapus sedang dibuka di editor
+			if (isDeletingCurrentDoc) {
+				const remainingInFilter = filteredDocuments.filter((d) => d.id !== doc.id);
+				if (remainingInFilter.length > 0) {
+					selectDocument(remainingInFilter[0]);
+				} else {
+					currentDoc = null;
+					selectedDocId = null;
+					editorTitle = '';
+					editorContent = '';
+					saveStatus = 'idle';
+					statusMessage = '';
+				}
+			}
+		} catch (err: unknown) {
+			console.error('Gagal menghapus dokumen:', err);
+			const msg = err instanceof Error ? err.message : 'Gagal menghapus dokumen';
+			toast.error(msg);
+		} finally {
+			isDeleting = false;
+			isDeleteModalOpen = false;
+			docToDelete = null;
+		}
+	}
 </script>
 
 <div class="flex h-[calc(100vh-5rem)] gap-6">
@@ -503,7 +569,7 @@
 								e.dataTransfer.effectAllowed = 'move';
 							}
 						}}
-						class="w-full cursor-grab rounded-xl text-left transition-all active:cursor-grabbing {selectedDocId ===
+						class="group relative flex w-full items-center justify-between rounded-xl transition-all cursor-grab active:cursor-grabbing {selectedDocId ===
 						doc.id
 							? 'bg-[var(--bg-surface-subtle)] text-[var(--text-primary)] shadow-2xs font-medium'
 							: 'text-[var(--text-secondary)] hover:bg-[var(--bg-surface-subtle)]/60'}"
@@ -515,7 +581,7 @@
 								folderStore.openDocumentEditor();
 								selectDocument(doc);
 							}}
-							class="flex w-full cursor-pointer flex-col gap-1 p-2.5 text-left active:scale-[0.99] transition-transform"
+							class="flex min-w-0 flex-1 cursor-pointer flex-col gap-1 p-2.5 text-left active:scale-[0.99] transition-transform"
 						>
 							<div class="flex items-center justify-between gap-1.5">
 								<span
@@ -535,11 +601,37 @@
 									showIcon={false}
 								/>
 							</div>
-							<div class="flex items-center justify-between font-mono text-xs text-zinc-400">
+							<div
+								class="flex items-center justify-between font-mono text-xs text-[var(--text-muted)]"
+							>
 								<span>[[{doc.slug}]]</span>
-								<span class="text-[11px] text-zinc-400/80">v{doc.version}</span>
+								<span class="text-[11px] opacity-80">v{doc.version}</span>
 							</div>
 						</button>
+						<div class="pr-2 shrink-0">
+							<button
+								type="button"
+								onclick={() => promptDeleteDocument(doc)}
+								title="Hapus catatan"
+								aria-label={`Hapus catatan ${doc.title}`}
+								data-testid="delete-document-item-btn"
+								class="opacity-0 group-hover:opacity-100 focus:opacity-100 rounded-lg p-1.5 text-[var(--text-muted)] hover:bg-red-500/10 hover:text-red-600 transition-all cursor-pointer"
+							>
+								<svg
+									class="h-3.5 w-3.5"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+									stroke-width="2"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+									/>
+								</svg>
+							</button>
+						</div>
 					</div>
 				{/each}
 			{/if}
@@ -677,7 +769,7 @@
 								onclick={() => togglePublish(true)}
 								disabled={isSaving}
 								title="Publikasikan catatan ini ke profil publik"
-								class="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white shadow-input transition-all hover:bg-zinc-800 active:scale-[0.98] disabled:opacity-50"
+								class="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-[var(--text-primary)] px-3 py-1.5 text-xs font-medium text-[var(--bg-surface)] shadow-input transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
 							>
 								<svg
 									class="h-3.5 w-3.5"
@@ -704,6 +796,32 @@
 							class="cursor-pointer rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] shadow-2xs transition-all hover:border-zinc-400 active:scale-[0.98] disabled:opacity-50"
 						>
 							{isSaving ? 'Menyimpan...' : 'Simpan'}
+						</button>
+
+						<!-- Delete Document Button -->
+						<button
+							type="button"
+							onclick={() => promptDeleteDocument(currentDoc)}
+							disabled={isDeleting || isSaving}
+							title="Hapus catatan ini"
+							aria-label="Hapus catatan"
+							data-testid="delete-document-btn"
+							class="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--text-secondary)] shadow-2xs transition-all hover:border-red-300 hover:bg-red-500/10 hover:text-red-600 active:scale-[0.98] disabled:opacity-50"
+						>
+							<svg
+								class="h-3.5 w-3.5"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+								stroke-width="2"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+								/>
+							</svg>
+							<span class="hidden sm:inline">Hapus</span>
 						</button>
 					</div>
 				</div>
@@ -787,8 +905,12 @@
 					/>
 				</div>
 			{:else}
-				<div class="flex flex-1 flex-col items-center justify-center p-8 text-center text-zinc-400">
-					<div class="mb-3 rounded-2xl bg-zinc-100 p-4 text-zinc-600 shadow-input">
+				<div
+					class="flex flex-1 flex-col items-center justify-center p-8 text-center text-[var(--text-muted)]"
+				>
+					<div
+						class="mb-3 rounded-2xl bg-[var(--bg-surface-subtle)] p-4 text-[var(--text-secondary)] shadow-input"
+					>
 						<svg
 							class="h-8 w-8"
 							fill="none"
@@ -803,12 +925,12 @@
 							/>
 						</svg>
 					</div>
-					<h3 class="text-base font-semibold tracking-tight text-zinc-800">
+					<h3 class="text-base font-semibold tracking-tight text-[var(--text-primary)]">
 						Belum ada catatan yang dipilih
 					</h3>
-					<p class="mt-1 max-w-sm text-xs text-zinc-500">
+					<p class="mt-1 max-w-sm text-xs text-[var(--text-secondary)]">
 						Pilih salah satu catatan dari daftar di sebelah kiri atau klik tombol <strong
-							class="text-zinc-700">+ Baru</strong
+							class="text-[var(--text-primary)]">+ Baru</strong
 						> untuk membuat catatan baru.
 					</p>
 				</div>
@@ -828,3 +950,75 @@
 	onKeepLocal={resolveConflictKeepLocal}
 	onCancel={() => (isConflictOpen = false)}
 />
+
+<!-- Modal Dialog Konfirmasi Hapus Catatan -->
+{#if isDeleteModalOpen && docToDelete}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="delete-doc-modal-title"
+	>
+		<div
+			class="w-full max-w-sm rounded-2xl border border-[var(--border-app)] bg-[var(--bg-surface)] p-6 shadow-2xl transition-all text-[var(--text-primary)]"
+		>
+			<div class="mb-4 flex items-center gap-3">
+				<div
+					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-600"
+				>
+					<svg
+						class="h-5 w-5"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+						/>
+					</svg>
+				</div>
+				<div>
+					<h3
+						id="delete-doc-modal-title"
+						class="text-base font-semibold tracking-tight text-[var(--text-primary)]"
+					>
+						Hapus Catatan
+					</h3>
+					<p class="text-xs text-[var(--text-secondary)]">Pindahkan ke Recycle Bin</p>
+				</div>
+			</div>
+
+			<p class="text-sm text-[var(--text-secondary)] leading-relaxed">
+				Apakah Anda yakin ingin memindahkan catatan <strong
+					class="text-[var(--text-primary)] font-semibold">"{docToDelete.title}"</strong
+				> ke Recycle Bin? Anda dapat memulihkannya nanti jika diperlukan.
+			</p>
+
+			<div class="mt-6 flex items-center justify-end gap-2.5">
+				<button
+					type="button"
+					onclick={() => {
+						isDeleteModalOpen = false;
+						docToDelete = null;
+					}}
+					disabled={isDeleting}
+					class="btn-ghost cursor-pointer"
+				>
+					Batal
+				</button>
+				<button
+					type="button"
+					onclick={confirmDeleteDocument}
+					disabled={isDeleting || isSaving}
+					data-testid="confirm-delete-doc-btn"
+					class="inline-flex cursor-pointer items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-input transition-all hover:bg-red-700 active:scale-[0.98] disabled:opacity-50"
+				>
+					{isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
