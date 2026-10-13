@@ -7,7 +7,8 @@
 	import { goto } from '$app/navigation';
 	import CreateWorkspaceModal from '$lib/components/workspace/CreateWorkspaceModal.svelte';
 	import { FolderTree } from '$lib/components/folder';
-	import { SearchPalette } from '$lib/components/search';
+	import { CommandPalette } from '$lib/components/command';
+	import { Breadcrumbs } from '$lib/components/ui';
 	import { ThemeSettingsModal } from '$lib/components/common';
 	import { themeStore } from '$lib/stores/theme.svelte';
 
@@ -207,18 +208,10 @@
 					>Smasara</span
 				>
 			</div>
-
-			<div class="hidden items-center gap-2 text-xs text-zinc-500 md:flex">
-				{#if workspaceStore.currentWorkspace}
-					<span class="font-medium text-zinc-800">
-						{workspaceStore.currentWorkspace.name}
-					</span>
-					<span class="text-zinc-300">•</span>
-					<span class="font-mono text-zinc-400">
-						/{workspaceStore.currentWorkspace.slug}
-					</span>
-				{/if}
-			</div>
+ <Breadcrumbs
+ 	workspace={workspaceStore.currentWorkspace}
+ 	path={[]}
+ />
 
 			<div class="mx-8 hidden max-w-xl flex-1 justify-center md:flex">
 				{#if workspaceStore.currentWorkspace}
@@ -407,6 +400,8 @@
 	onCreate={handleCreateWorkspace}
 />
 
-<SearchPalette bind:isOpen={isSearchOpen} onSelect={handleSearchSelect} />
+ <CommandPalette bind:isOpen={isSearchOpen}>
+ 	<SearchPalette bind:isOpen={isSearchOpen} onSelect={handleSearchSelect} />
+ </CommandPalette>
 
 <ThemeSettingsModal isOpen={isThemeModalOpen} onClose={() => (isThemeModalOpen = false)} />

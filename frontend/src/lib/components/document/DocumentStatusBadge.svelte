@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { DocumentPipelineStatus } from '$lib/types';
+	import { Badge } from '$lib/components/ui';
 
 	let {
 		status = 'private',
@@ -40,90 +41,60 @@
 				return 'Catatan pribadi, hanya dapat diakses oleh Anda';
 		}
 	});
+
+	const badgeColor = $derived(
+		status === 'live' ? 'emerald' : status === 'shared' ? 'sky' : 'slate'
+	);
 </script>
 
 <span
-	class="inline-flex items-center gap-1.5 rounded-full font-medium transition-colors select-none {size ===
-	'xs'
-		? 'px-2 py-0.5 text-[10px]'
-		: size === 'md'
-			? 'px-3 py-1 text-xs'
-			: 'px-2.5 py-0.5 text-[11px]'} {status === 'live'
-		? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs'
-		: status === 'shared'
-			? 'bg-sky-50 text-sky-700 border border-sky-200/80 shadow-2xs'
-			: 'bg-slate-50 text-slate-600 border border-slate-200/70 shadow-2xs'}"
+	class="inline-flex items-center gap-1.5 transition-colors select-none"
 	title={tooltip}
 	data-status={status}
 	role="status"
 	aria-label={label}
 >
-	<!-- Status Indicator Dot -->
-	<span class="relative flex h-1.5 w-1.5 shrink-0">
-		{#if status === 'live'}
-			<span
-				class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"
-			></span>
-			<span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-		{:else if status === 'shared'}
-			<span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-sky-500"></span>
-		{:else}
-			<span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-slate-400"></span>
-		{/if}
-	</span>
+	<Badge color={badgeColor} size={size === 'md' ? 'sm' : 'xs'}>
+		<!-- Status Indicator Dot -->
+		<span class="relative flex h-1.5 w-1.5 shrink-0">
+			{#if status === 'live'}
+				<span
+					class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"
+				></span>
+				<span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+			{:else if status === 'shared'}
+				<span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-sky-500"></span>
+			{:else}
+				<span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-slate-400"></span>
+			{/if}
+		</span>
 
-	<!-- Status Icon (Optional) -->
-	{#if showIcon}
-		{#if status === 'live'}
-			<!-- Globe / World icon -->
-			<svg
-				class="h-3 w-3 shrink-0 text-emerald-600"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-				stroke-width="2"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418"
-				/>
-			</svg>
-		{:else if status === 'shared'}
-			<!-- Users / Collaboration icon -->
-			<svg
-				class="h-3 w-3 shrink-0 text-sky-600"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-				stroke-width="2"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.999-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
-				/>
-			</svg>
-		{:else}
-			<!-- Lock / Private icon -->
-			<svg
-				class="h-3 w-3 shrink-0 text-slate-500"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-				stroke-width="2"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-				/>
-			</svg>
+		<!-- Status Icon (Optional) -->
+		{#if showIcon}
+			{#if status === 'live'}
+				<svg class="h-3 w-3 shrink-0 text-emerald-600" viewBox="0 0 24 24" fill="currentColor">
+					<path
+						d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"
+					/>
+				</svg>
+			{:else if status === 'shared'}
+				<svg class="h-3 w-3 shrink-0 text-sky-600" viewBox="0 0 24 24" fill="currentColor">
+					<path
+						d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h7v-2.03c0-1.02.66-1.95 1.68-2.31-.9-.23-1.68-.66-1.68-1.66zM16 13c-2.33 0-7 1.17-7 3.5V19h14v-2.03c0-1.02-.66-1.95-1.68-2.31-.9-.23-1.68-.66-1.68-1.66z"
+					/>
+				</svg>
+			{:else}
+				<svg class="h-3 w-3 shrink-0 text-slate-500" viewBox="0 0 24 24" fill="currentColor">
+					<path
+						d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM9 8V6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9z"
+					/>
+				</svg>
+			{/if}
 		{/if}
-	{/if}
 
-	<!-- Label Text -->
-	{#if showLabel}
-		<span class="tracking-tight">{label}</span>
-	{/if}
+		<!-- Label Text -->
+		{#if showLabel}
+			<span class="tracking-tight ml-1">{label}</span>
+		{/if}
+	</Badge>
 </span>

@@ -127,16 +127,6 @@
 		onSelect(doc.id);
 	}
 
-	onMount(() => {
-		const handleGlobalKeydown = (e: KeyboardEvent) => {
-			if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-				e.preventDefault();
-				isOpen = !isOpen;
-			}
-		};
-		window.addEventListener('keydown', handleGlobalKeydown);
-		return () => window.removeEventListener('keydown', handleGlobalKeydown);
-	});
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
