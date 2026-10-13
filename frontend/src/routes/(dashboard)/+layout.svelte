@@ -209,9 +209,10 @@
 					>Smasara</span
 				>
 			</div>
- <Breadcrumbs
+<Breadcrumbs
+	workspace={workspaceStore.currentWorkspace}
 	path={folderStore.breadcrumbPath}
- />
+/>
 
 			<div class="mx-8 hidden max-w-xl flex-1 justify-center md:flex">
 				{#if workspaceStore.currentWorkspace}
