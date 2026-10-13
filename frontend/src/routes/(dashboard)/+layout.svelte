@@ -210,8 +210,7 @@
 				>
 			</div>
  <Breadcrumbs
- 	workspace={workspaceStore.currentWorkspace}
- 	path={[]}
+	path={folderStore.breadcrumbPath}
  />
 
 			<div class="mx-8 hidden max-w-xl flex-1 justify-center md:flex">

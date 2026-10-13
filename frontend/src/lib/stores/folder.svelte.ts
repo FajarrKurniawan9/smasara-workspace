@@ -53,6 +53,20 @@ class FolderStore {
 		if (!this.selectedFolderId) return null;
 		return this.folders.find((f) => f.id === this.selectedFolderId) || null;
 	});
+	breadcrumbPath = $derived.by<FolderItem[]>(() => {
+		if (!this.selectedFolderId) return [];
+		const path: FolderItem[] = [];
+		let currentId = this.selectedFolderId;
+
+		while (currentId) {
+			const folder = this.folders.find((f) => f.id === currentId);
+			if (!folder) break;
+			path.unshift(folder);
+			currentId = folder.parent_id || '';
+		}
+
+		return path;
+	});
 
 	async loadFolders(workspaceId: string) {
 		if (!workspaceId) return;
