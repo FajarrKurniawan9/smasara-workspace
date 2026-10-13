@@ -8,6 +8,7 @@
 	import CreateWorkspaceModal from '$lib/components/workspace/CreateWorkspaceModal.svelte';
 	import { FolderTree } from '$lib/components/folder';
 	import { CommandPalette } from '$lib/components/command';
+	import { SearchPalette } from '$lib/components/search';
 	import { Breadcrumbs } from '$lib/components/ui';
 	import { ThemeSettingsModal } from '$lib/components/common';
 	import { themeStore } from '$lib/stores/theme.svelte';
