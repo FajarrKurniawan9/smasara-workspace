@@ -48,7 +48,7 @@
 					link: false
 				}),
 				Link.configure({
-					openOnClick: false,
+					openOnClick: true,
 					isAllowedUri: (url) => Boolean(url),
 					HTMLAttributes: {
 						class: 'text-blue-600 underline hover:text-blue-800'
