@@ -93,6 +93,9 @@
 	--text-primary: #18181b;
 	--text-secondary: #71717a;
 	--text-muted: #a1a1aa;
+	--color-success: #10b981;
+	--color-warning: #f59e0b;
+	--color-error: #ef4444;
 	--editor-font: var(--font-sans);
 }
 
