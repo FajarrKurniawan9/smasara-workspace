@@ -2,7 +2,7 @@
 	import { fetchApi } from '$lib/api';
 	import { workspaceStore } from '$lib/stores/workspace.svelte';
 	import type { SearchDocumentItem } from '$lib/types';
-	import { onMount } from 'svelte';
+
 	import { fade, slide } from 'svelte/transition';
 
 	let {
@@ -126,7 +126,6 @@
 		isOpen = false;
 		onSelect(doc.id);
 	}
-
 </script>
 
 <svelte:window onkeydown={handleKeydown} />

@@ -59,6 +59,7 @@ export interface WorkspaceItem {
 	created_at?: string;
 	updated_at?: string;
 }
+export type Workspace = WorkspaceItem;
 
 export interface FolderTreeNode extends FolderItem {
 	children: FolderTreeNode[];

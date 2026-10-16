@@ -209,10 +209,7 @@
 					>Smasara</span
 				>
 			</div>
-<Breadcrumbs
-	workspace={workspaceStore.currentWorkspace}
-	path={folderStore.breadcrumbPath}
-/>
+			<Breadcrumbs workspace={workspaceStore.currentWorkspace} path={folderStore.breadcrumbPath} />
 
 			<div class="mx-8 hidden max-w-xl flex-1 justify-center md:flex">
 				{#if workspaceStore.currentWorkspace}
@@ -401,8 +398,8 @@
 	onCreate={handleCreateWorkspace}
 />
 
- <CommandPalette bind:isOpen={isSearchOpen}>
- 	<SearchPalette bind:isOpen={isSearchOpen} onSelect={handleSearchSelect} />
- </CommandPalette>
+<CommandPalette bind:isOpen={isSearchOpen}>
+	<SearchPalette bind:isOpen={isSearchOpen} onSelect={handleSearchSelect} />
+</CommandPalette>
 
 <ThemeSettingsModal isOpen={isThemeModalOpen} onClose={() => (isThemeModalOpen = false)} />

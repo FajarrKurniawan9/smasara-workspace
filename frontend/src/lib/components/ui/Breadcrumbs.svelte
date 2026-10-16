@@ -2,7 +2,7 @@
 	import type { Workspace } from '$lib/types';
 
 	interface Props {
-		workspace?: Workspace;
+		workspace?: Workspace | null;
 		path?: Array<{ name: string; id: string }>;
 	}
 
@@ -14,8 +14,8 @@
 		<span class="font-medium text-zinc-800">
 			{workspace.name}
 		</span>
-		
-		{#each path as item}
+
+		{#each path as item (item.id)}
 			<span class="text-zinc-300">/</span>
 			<span class="font-medium text-zinc-600">
 				{item.name}
