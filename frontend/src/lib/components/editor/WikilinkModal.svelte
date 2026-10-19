@@ -4,17 +4,25 @@
 		onClose: () => void;
 		onSelect: (slug: string, title?: string) => void;
 		availableDocuments?: Array<{ id: string; title: string; slug: string }>;
+		currentDocumentId?: string | null;
 	}
 
-	let { isOpen, onClose, onSelect, availableDocuments = [] }: Props = $props();
+	let {
+		isOpen,
+		onClose,
+		onSelect,
+		availableDocuments = [],
+		currentDocumentId = null
+	}: Props = $props();
 
 	let searchQuery = $state('');
 	let manualSlug = $state('');
 
 	let filteredDocs = $derived.by(() => {
+		const docs = availableDocuments.filter((d) => d.id !== currentDocumentId);
 		const q = searchQuery.toLowerCase().trim();
-		if (!q) return availableDocuments;
-		return availableDocuments.filter(
+		if (!q) return docs;
+		return docs.filter(
 			(d) => d.title.toLowerCase().includes(q) || d.slug.toLowerCase().includes(q)
 		);
 	});

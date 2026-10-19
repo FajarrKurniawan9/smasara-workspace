@@ -16,6 +16,7 @@
 		onChange?: (markdown: string) => void;
 		onWikilinkNavigate?: (slug: string) => void;
 		availableDocuments?: Array<{ id: string; title: string; slug: string }>;
+		currentDocumentId?: string | null;
 	}
 
 	let {
@@ -24,7 +25,8 @@
 		editable = true,
 		onChange,
 		onWikilinkNavigate,
-		availableDocuments = []
+		availableDocuments = [],
+		currentDocumentId = null
 	}: Props = $props();
 
 	let element: HTMLDivElement | undefined = $state();
@@ -290,6 +292,7 @@
 		onClose={() => (isWikilinkModalOpen = false)}
 		onSelect={handleWikilinkSelect}
 		{availableDocuments}
+		{currentDocumentId}
 	/>
 
 	<LinkModal

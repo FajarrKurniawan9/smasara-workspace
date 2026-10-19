@@ -903,6 +903,7 @@
 							content={editorContent}
 							onChange={handleContentChange}
 							onWikilinkNavigate={navigateToWikilink}
+							currentDocumentId={currentDoc?.id}
 							availableDocuments={documents.map((d) => ({
 								id: d.id,
 								title: d.title,
