@@ -128,7 +128,9 @@
 		</button>
 	</div>
 
-	<div class="w-full max-w-[26rem] card-smasara transform transition-all duration-300 ease-out hover:shadow-card">
+	<div
+		class="w-full max-w-[26rem] card-smasara transform transition-all duration-300 ease-out hover:shadow-card"
+	>
 		<div class="mb-8 text-center">
 			<h1 class="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">
 				Masuk Smasara

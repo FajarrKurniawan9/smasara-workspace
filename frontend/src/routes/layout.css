@@ -172,7 +172,7 @@ html[data-font='mono'] {
 @layer components {
 	/* Form Inputs */
 	.input-smasara {
-		@apply mt-1 block w-full rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-4 py-3 text-sm text-[var(--text-primary)] shadow-input transition-all placeholder:text-[var(--text-muted)] hover:border-zinc-400 focus:border-[var(--text-primary)] focus:ring-4 focus:ring-zinc-500/10 focus:outline-none;
+		@apply mt-1 block w-full rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-4 py-3 text-sm text-[var(--text-primary)] shadow-input transition-all placeholder:text-[var(--text-muted)] hover:border-[var(--text-muted)] focus:border-[var(--text-primary)] focus:ring-4 focus:ring-zinc-500/10 focus:outline-none;
 	}
 
 	/* Buttons */
@@ -180,13 +180,23 @@ html[data-font='mono'] {
 		@apply flex w-full justify-center rounded-xl bg-[var(--text-primary)] px-4 py-3 text-sm font-medium text-[var(--bg-surface)] transition-all hover:opacity-90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
 	}
 
-	/* Button Ghost */
+	/* Button Ghost — borderless, transparent bg until hover */
 	.btn-ghost {
 		@apply inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium text-[var(--text-secondary)] transition-all hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+	}
+
+	/* Toolbar icon button — minimal, no border/shadow */
+	.btn-toolbar {
+		@apply inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-surface-subtle)] hover:text-[var(--text-primary)] active:scale-[0.97];
 	}
 
 	/* Cards */
 	.card-smasara {
 		@apply rounded-2xl border border-[var(--border-app)] bg-[var(--bg-surface)] p-8 text-[var(--text-primary)] shadow-card;
+	}
+
+	/* Section label — quieter than all-caps screaming */
+	.section-label {
+		@apply text-[10px] font-medium tracking-wide text-[var(--text-muted)];
 	}
 }

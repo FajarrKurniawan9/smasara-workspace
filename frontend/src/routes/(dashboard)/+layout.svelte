@@ -52,47 +52,37 @@
 
 <div class="flex h-screen overflow-hidden bg-[var(--bg-app)] text-[var(--text-primary)]">
 	<!-- Sidebar -->
-	<aside
-		class="hidden w-64 flex-shrink-0 flex-col border-r border-[var(--border-app)] bg-[var(--bg-surface)] backdrop-blur-md md:flex"
-	>
-		<!-- Logo / Brand -->
-		<div
-			class="flex h-16 items-center justify-between border-b border-[var(--border-app)] px-6 font-semibold tracking-tight text-[var(--text-primary)]"
-		>
-			<span class="flex items-center gap-2.5">
-				<span
-					class="flex h-7 w-7 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-input dark:bg-zinc-100 dark:text-zinc-900"
+	<aside class="hidden w-60 flex-shrink-0 flex-col bg-[var(--bg-surface)] md:flex">
+		<!-- Logo / Brand — compact, no heavy border -->
+		<div class="flex h-14 items-center gap-2.5 px-5">
+			<span
+				class="flex h-6 w-6 items-center justify-center rounded-lg bg-[var(--text-primary)] text-[var(--bg-surface)]"
+			>
+				<svg
+					class="h-3.5 w-3.5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+					stroke-width="2"
 				>
-					<svg
-						class="h-4 w-4"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						stroke-width="2"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-						/>
-					</svg>
-				</span>
-				<span class="text-base font-semibold tracking-tight text-[var(--text-primary)]"
-					>Smasara</span
-				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+					/>
+				</svg>
 			</span>
+			<span class="text-sm font-semibold tracking-tight">Smasara</span>
 		</div>
 
-		<!-- Workspace Selector & Management -->
-		<div class="border-b border-[var(--border-app-subtle)] p-3 bg-[var(--bg-surface-subtle)]">
-			<div class="mb-2 flex items-center justify-between px-1">
-				<span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
-					Workspace
-				</span>
+		<!-- Workspace Selector — clean, no bg tint -->
+		<div class="px-3 pb-3">
+			<div class="mb-1.5 flex items-center justify-between px-2">
+				<span class="section-label">Workspace</span>
 				<button
 					type="button"
 					onclick={() => (isCreateWsModalOpen = true)}
-					class="flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-200/60 hover:text-zinc-900 active:scale-[0.98]"
+					class="btn-toolbar px-1 py-0.5 text-[10px]"
 					title="Buat Workspace Baru"
 				>
 					<span>+</span>
@@ -103,7 +93,7 @@
 			{#if workspaceStore.workspaces.length > 0}
 				<select
 					bind:value={workspaceStore.currentWorkspaceId}
-					class="w-full truncate rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-3 py-2 text-xs font-medium text-[var(--text-primary)] shadow-input transition-all hover:border-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-900/5 dark:focus:ring-zinc-100/5"
+					class="w-full truncate rounded-lg border border-[var(--border-app)] bg-[var(--bg-app)] px-2.5 py-1.5 text-xs text-[var(--text-primary)] transition-colors hover:border-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--text-primary)]/10"
 				>
 					{#each workspaceStore.workspaces as ws (ws.id)}
 						<option value={ws.id}>
@@ -116,24 +106,27 @@
 				<button
 					type="button"
 					onclick={() => (isCreateWsModalOpen = true)}
-					class="w-full rounded-xl border border-dashed border-zinc-300 p-2.5 text-center text-xs font-medium text-zinc-700 transition-all hover:border-zinc-400 hover:bg-zinc-100/60 active:scale-[0.98]"
+					class="w-full rounded-lg border border-dashed border-[var(--border-app)] p-2 text-center text-xs text-[var(--text-secondary)] transition-colors hover:border-[var(--text-muted)] hover:text-[var(--text-primary)] active:scale-[0.98]"
 				>
 					+ Buat Workspace Pertama
 				</button>
 			{/if}
 		</div>
 
+		<!-- Subtle divider -->
+		<div class="mx-3 border-t border-[var(--border-app-subtle)]"></div>
+
 		<!-- Folders / Navigasi Sidebar (T-401) -->
 		<div class="flex-1 overflow-y-auto px-3 py-2">
 			<FolderTree />
 		</div>
 
-		<!-- Logout Button -->
-		<div class="border-t border-[var(--border-app)] p-3 space-y-2">
+		<!-- Bottom actions — ghost buttons, no borders/shadows -->
+		<div class="space-y-1 px-3 pb-3">
 			<button
 				type="button"
 				onclick={() => (isThemeModalOpen = true)}
-				class="flex w-full items-center justify-between rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-3 py-2 text-xs font-medium text-[var(--text-secondary)] transition-all hover:border-zinc-400 hover:text-[var(--text-primary)] active:scale-[0.98]"
+				class="btn-toolbar w-full justify-between"
 				title="Atur Tema & Tipografi"
 				data-testid="theme-settings-sidebar-btn"
 			>
@@ -184,14 +177,14 @@
 					{/if}
 					<span>Tema & Font</span>
 				</span>
-				<span class="text-[10px] uppercase font-semibold opacity-60">
+				<span class="text-[10px] opacity-50">
 					{themeStore.mode}
 				</span>
 			</button>
 			<button
 				onclick={handleLogout}
 				disabled={isLoggingOut}
-				class="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--bg-surface-subtle)] px-3 py-2 text-xs font-medium text-[var(--text-secondary)] transition-all hover:bg-red-500/10 hover:text-red-500 active:scale-[0.98] disabled:opacity-50"
+				class="btn-toolbar w-full justify-center text-[var(--text-muted)] hover:text-red-500"
 			>
 				{isLoggingOut ? 'Keluar...' : 'Logout'}
 			</button>
@@ -200,28 +193,26 @@
 
 	<!-- Main Content Area -->
 	<div class="flex flex-1 flex-col overflow-hidden">
-		<!-- Topbar -->
+		<!-- Topbar — thinner, subtler border -->
 		<header
-			class="flex h-16 items-center justify-between border-b border-[var(--border-app)] bg-[var(--bg-surface)] px-6 backdrop-blur-md"
+			class="flex h-12 items-center justify-between border-b border-[var(--border-app-subtle)] bg-[var(--bg-app)] px-5"
 		>
 			<div class="flex items-center md:hidden">
-				<span class="text-base font-semibold tracking-tight text-[var(--text-primary)]"
-					>Smasara</span
-				>
+				<span class="text-sm font-semibold tracking-tight">Smasara</span>
 			</div>
 			<Breadcrumbs workspace={workspaceStore.currentWorkspace} path={folderStore.breadcrumbPath} />
 
-			<div class="mx-8 hidden max-w-xl flex-1 justify-center md:flex">
+			<div class="mx-6 hidden max-w-lg flex-1 justify-center md:flex">
 				{#if workspaceStore.currentWorkspace}
 					<button
 						type="button"
 						onclick={() => (isSearchOpen = true)}
-						class="flex w-full max-w-md cursor-text items-center justify-between rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface-subtle)] px-3.5 py-2 text-sm text-[var(--text-secondary)] shadow-input transition-all hover:border-zinc-400 hover:text-[var(--text-primary)] active:scale-[0.99]"
+						class="flex w-full max-w-sm cursor-text items-center justify-between rounded-lg bg-[var(--bg-surface-subtle)] px-3 py-1.5 text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--text-secondary)]"
 						title="Cari Catatan (Cmd/Ctrl + K)"
 					>
-						<div class="flex items-center gap-2.5">
+						<div class="flex items-center gap-2">
 							<svg
-								class="h-4 w-4 text-zinc-400"
+								class="h-3.5 w-3.5"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -235,13 +226,13 @@
 							</svg>
 							<span class="truncate">Cari di {workspaceStore.currentWorkspace.name}...</span>
 						</div>
-						<div class="flex shrink-0 items-center gap-1">
+						<div class="flex shrink-0 items-center gap-0.5">
 							<kbd
-								class="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold text-zinc-400 shadow-2xs"
+								class="rounded border border-[var(--border-app)] px-1 py-px font-mono text-[9px] text-[var(--text-muted)]"
 								>⌘</kbd
 							>
 							<kbd
-								class="rounded-md border border-zinc-200 bg-white px-1.5 py-0.5 font-sans text-[10px] font-semibold text-zinc-400 shadow-2xs"
+								class="rounded border border-[var(--border-app)] px-1 py-px font-mono text-[9px] text-[var(--text-muted)]"
 								>K</kbd
 							>
 						</div>
@@ -249,12 +240,12 @@
 				{/if}
 			</div>
 
-			<div class="flex items-center space-x-2">
+			<div class="flex items-center gap-1">
 				{#if workspaceStore.currentWorkspace}
 					<button
 						type="button"
 						onclick={() => folderStore.openGraphView()}
-						class="flex items-center gap-1.5 rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--text-secondary)] shadow-input transition-all hover:border-zinc-400 hover:text-[var(--text-primary)] active:scale-[0.98]"
+						class="btn-toolbar"
 						title="Buka Graf Relasi Workspace"
 						aria-label="Buka Graf Relasi Workspace"
 						data-testid="workspace-graph-btn"
@@ -281,7 +272,7 @@
 				<button
 					type="button"
 					onclick={() => (isThemeModalOpen = true)}
-					class="flex items-center gap-1.5 rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--text-secondary)] shadow-input transition-all hover:border-zinc-400 hover:text-[var(--text-primary)] active:scale-[0.98]"
+					class="btn-toolbar"
 					title="Pengaturan Tema & Tipografi"
 					aria-label="Pengaturan Tema & Tipografi"
 					data-testid="theme-settings-header-btn"
@@ -335,12 +326,12 @@
 					<button
 						type="button"
 						onclick={() => (isSearchOpen = true)}
-						class="rounded-xl p-2 text-zinc-500 transition-all hover:bg-zinc-100 hover:text-zinc-800 active:scale-[0.98] md:hidden"
+						class="btn-toolbar md:hidden"
 						title="Cari Catatan"
 						aria-label="Cari Catatan"
 					>
 						<svg
-							class="h-5 w-5"
+							class="h-4 w-4"
 							fill="none"
 							viewBox="0 0 24 24"
 							stroke="currentColor"
@@ -357,11 +348,11 @@
 				{#if auth.username}
 					<a
 						href="/@{auth.username}"
-						class="flex items-center gap-1.5 rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] shadow-input transition-all hover:border-zinc-400 hover:text-[var(--text-primary)] active:scale-[0.98]"
+						class="btn-toolbar text-[var(--text-muted)]"
 						title="Lihat Profil Publik"
 					>
 						<svg
-							class="h-3.5 w-3.5 text-zinc-400"
+							class="h-3.5 w-3.5"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -377,7 +368,9 @@
 						<span>@{auth.username}</span>
 					</a>
 				{:else}
-					<span class="rounded-xl bg-zinc-100 px-2.5 py-1 font-mono text-xs text-zinc-500">
+					<span
+						class="rounded-lg bg-[var(--bg-surface-subtle)] px-2 py-1 font-mono text-[10px] text-[var(--text-muted)]"
+					>
 						{auth.userId ? auth.userId.substring(0, 8) + '...' : 'Unknown'}
 					</span>
 				{/if}
@@ -385,7 +378,7 @@
 		</header>
 
 		<!-- Main Content Scrollable Area -->
-		<main class="flex-1 overflow-y-auto p-6 bg-[var(--bg-app)]">
+		<main class="flex-1 overflow-y-auto bg-[var(--bg-app)] p-5">
 			{@render children()}
 		</main>
 	</div>
