@@ -81,17 +81,49 @@
 	<!-- Header Navigasi Minimalis / Brand -->
 	<header class="sticky top-0 z-20 border-b border-zinc-200/80 bg-white/80 backdrop-blur-md">
 		<div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
-			<a
-				href="/"
-				class="flex items-center gap-2.5 font-semibold tracking-tight text-zinc-900 transition-opacity hover:opacity-80 active:scale-[0.98]"
-			>
-				<div
-					class="flex h-7 w-7 items-center justify-center rounded-xl bg-zinc-900 text-xs font-bold text-white shadow-input"
+			<div class="flex items-center gap-4">
+				<a
+					href="/"
+					class="flex items-center gap-2.5 font-semibold tracking-tight text-zinc-900 transition-opacity hover:opacity-80 active:scale-[0.98]"
 				>
-					S
-				</div>
-				<span class="text-sm font-semibold tracking-tight">Smasara</span>
-			</a>
+					<span class="flex h-6 w-6 items-center justify-center rounded-lg bg-zinc-900 text-white">
+						<svg
+							class="h-3.5 w-3.5"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+							/>
+						</svg>
+					</span>
+					<span class="text-sm font-semibold tracking-tight">Smasara</span>
+				</a>
+
+				<div class="h-4 w-px bg-zinc-200"></div>
+
+				<a
+					href="/"
+					class="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 transition-all hover:bg-zinc-50 hover:text-zinc-900 active:scale-[0.98]"
+					title="Kembali ke Dashboard Utama"
+				>
+					<svg
+						class="h-3.5 w-3.5"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+					</svg>
+					<span>Beranda</span>
+				</a>
+			</div>
+
 			<div class="flex items-center gap-2.5">
 				<a href="/login" class="btn-ghost text-xs"> Masuk </a>
 				<a
