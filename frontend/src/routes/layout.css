@@ -69,11 +69,11 @@
 	--font-mono:
 		'Google Sans Code', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
 		monospace;
-	--color-primary-50: #f0f5ff;
-	--color-primary-100: #e5edff;
-	--color-primary-500: #3b82f6;
-	--color-primary-600: #2563eb;
-	--color-primary-700: #1d4ed8;
+	--color-primary-50: #ecfdf5;
+	--color-primary-100: #d1fae5;
+	--color-primary-500: #10b981;
+	--color-primary-600: #059669;
+	--color-primary-700: #047857;
 
 	/* Radius modern */
 	--radius-xl: 0.8rem;
@@ -85,29 +85,59 @@
 }
 
 :root {
-	--bg-app: #fafafa;
-	--bg-surface: #ffffff;
-	--bg-surface-subtle: #f4f4f5;
-	--border-app: #e4e4e7;
-	--border-app-subtle: #f4f4f5;
-	--text-primary: #18181b;
-	--text-secondary: #71717a;
-	--text-muted: #a1a1aa;
-	--color-success: #10b981;
-	--color-warning: #f59e0b;
-	--color-error: #ef4444;
+	/* 1. KANVAS & PERMUKAAN (Tinted Mineral/Sage Neutrals - Light Mode) */
+	--bg-app: #f7f9f8; /* Mineral paper dengan bias sage lembut */
+	--bg-surface: #ffffff; /* Putih murni untuk permukaan editor & kartu aktif */
+	--bg-surface-subtle: #eef2f0; /* Hover state (.btn-toolbar) & surface sekunder */
+
+	/* 2. BORDER & PEMBATAS */
+	--border-app: #dce3df; /* Garis batas mineral tegas namun lembut */
+	--border-app-subtle: #eef2f0; /* Pembatas mikro */
+
+	/* 3. TIPOGRAFI (Deep Forest Charcoal) */
+	--text-primary: #111a16; /* Hitam tinta dengan bias hijau hutan pekat */
+	--text-secondary: #4a5d54; /* Abu-abu mineral-hijau untuk teks sekunder */
+	--text-muted: #82968c; /* Warna untuk .section-label & metadata */
+
+	/* 4. IDENTITAS BRAND & AKSI SEMANTIK */
+	--brand-primary: #047857; /* Deep Emerald Ink: CTA utama & elemen aktif */
+	--brand-primary-hover: #065f46;
+	--brand-subtle: #d1fae5; /* Highlight / badge aktif */
+	--status-warning: #b45309; /* Warm Ochre/Amber untuk aksi sekunder/Publish */
+	--status-danger: #dc2626; /* Menggantikan hard‑coded text‑red‑600 (Delete) */
+	--status-danger-subtle: #fee2e2;
+
+	/* 5. MODE SANSEKERTA / PURWAKA */
+	--title-sansekerta: #6b4c3b; /* Cokelat aksara/kayu manis yang menyatu alami dengan hijau */
+	--text-sansekerta: #4a3728; /* Tinta cokelat tua untuk bait/tagline Purwaka */
+
 	--editor-font: var(--font-sans);
 }
 
-html[data-theme='dark'] {
-	--bg-app: #09090b;
-	--bg-surface: #121215;
-	--bg-surface-subtle: #18181b;
-	--border-app: #27272a;
-	--border-app-subtle: #1f1f23;
-	--text-primary: #f4f4f5;
-	--text-secondary: #a1a1aa;
-	--text-muted: #71717a;
+html[data-theme='dark'],
+:where(.dark, .dark *) {
+	/* DARK MODE (Deep Pine Obsidian) */
+	--bg-app: #080d0b; /* Obsidian hutan malam (menggantikan #09090b) */
+	--bg-surface: #0f1714; /* Permukaan kartu/sidebar gelap */
+	--bg-surface-subtle: #16221d; /* Hover state (.btn-toolbar) di dark mode */
+
+	--border-app: #21312a;
+	--border-app-subtle: #16221d;
+
+	--text-primary: #ecf2ef; /* Putih embun (tidak menyilaukan mata) */
+	--text-secondary: #94a89e;
+	--text-muted: #5e7368;
+
+	--brand-primary: #10b981; /* Emerald bercahaya teduh di atas latar gelap */
+	--brand-primary-hover: #34d399;
+	--brand-subtle: #062e22;
+	--status-warning: #f59e0b;
+	--status-danger: #f87171;
+	--status-danger-subtle: #2d1212;
+
+	/* MODE SANSEKERTA / PURWAKA (Dark Mode Adaptation) */
+	--title-sansekerta: #d6b89c; /* Emas cendana lembut agar kontras di layar gelap */
+	--text-sansekerta: #b0957c;
 }
 
 html[data-theme='normal'] {

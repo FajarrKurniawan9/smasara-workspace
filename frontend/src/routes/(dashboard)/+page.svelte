@@ -652,7 +652,7 @@
 								title="Hapus catatan"
 								aria-label={`Hapus catatan ${doc.title}`}
 								data-testid="delete-document-item-btn"
-								class="opacity-0 group-hover:opacity-100 focus:opacity-100 rounded p-1 text-[var(--text-muted)] hover:bg-red-500/10 hover:text-red-600 transition-colors cursor-pointer"
+								class="opacity-0 group-hover:opacity-100 focus:opacity-100 rounded p-1 text-[var(--text-muted)] hover:bg-[var(--status-danger)]/10 hover:text-[var(--status-danger)] transition-colors cursor-pointer"
 							>
 								<svg
 									class="h-3.5 w-3.5"
@@ -753,7 +753,9 @@
 								>
 							{:else if saveStatus === 'error'}
 								<span class="inline-block h-1.5 w-1.5 rounded-full bg-red-500"></span>
-								<span class="text-[11px] font-medium text-red-600">{statusMessage}</span>
+								<span class="text-[11px] font-medium text-[var(--status-danger)]"
+									>{statusMessage}</span
+								>
 							{:else}
 								<span class="font-mono text-[10px] text-[var(--text-muted)]"
 									>v{currentDoc.version}</span
@@ -802,10 +804,10 @@
 								onclick={() => togglePublish(false)}
 								disabled={isSaving}
 								title="Kembalikan status catatan menjadi draf privat"
-								class="btn-toolbar text-amber-700 hover:bg-amber-500/10 hover:text-amber-800"
+								class="btn-toolbar text-[var(--status-warning)] hover:bg-[var(--status-warning)]/10 hover:text-[var(--status-warning)]"
 							>
 								<svg
-									class="h-3.5 w-3.5 text-amber-600"
+									class="h-3.5 w-3.5"
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"
@@ -862,7 +864,7 @@
 							title="Hapus catatan ini"
 							aria-label="Hapus catatan"
 							data-testid="delete-document-btn"
-							class="btn-toolbar text-[var(--text-muted)] hover:bg-red-500/10 hover:text-red-600"
+							class="btn-toolbar text-[var(--text-muted)] hover:bg-[var(--status-danger)]/10 hover:text-[var(--status-danger)]"
 						>
 							<svg
 								class="h-3.5 w-3.5"
@@ -999,7 +1001,7 @@
 		>
 			<div class="mb-4 flex items-center gap-3">
 				<div
-					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-600"
+					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--status-danger-subtle)] text-[var(--status-danger)]"
 				>
 					<svg
 						class="h-5 w-5"
@@ -1052,7 +1054,7 @@
 					onclick={confirmDeleteDocument}
 					disabled={isDeleting || isSaving}
 					data-testid="confirm-delete-doc-btn"
-					class="inline-flex cursor-pointer items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-xs font-semibold text-white shadow-input transition-all hover:bg-red-700 active:scale-[0.98] disabled:opacity-50"
+					class="inline-flex cursor-pointer items-center justify-center rounded-xl bg-[var(--status-danger)] px-4 py-2 text-xs font-semibold text-white shadow-input transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
 				>
 					{isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
 				</button>
