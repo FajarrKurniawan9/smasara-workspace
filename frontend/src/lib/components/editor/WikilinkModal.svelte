@@ -73,9 +73,23 @@
 			<div class="flex items-start justify-between pb-3 border-b border-[var(--border-app-subtle)]">
 				<div class="flex items-center gap-2.5">
 					<div
-						class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface-subtle)] font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400"
+						class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border-app)] bg-[var(--bg-surface-subtle)] text-emerald-600 dark:text-emerald-400"
 					>
-						[[ ]]
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="18"
+							height="18"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.75"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+							<path d="M14 2v5h5" />
+							<path d="M10 12a2 2 0 1 0 0 4h4a2 2 0 1 0 0-4h-2" />
+						</svg>
 					</div>
 					<div>
 						<h3
